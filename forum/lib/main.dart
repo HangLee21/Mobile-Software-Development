@@ -1,65 +1,140 @@
 import 'package:flutter/material.dart';
-import 'theme/theme_data.dart';
+import 'package:forum/theme/theme_data.dart';
 
-void main() {
-  runApp(MyApp());
-}
+/// Flutter code sample for [NavigationBar].
 
-class MyApp extends StatelessWidget {
+void main() => runApp(const NavigationBarApp());
+
+class NavigationBarApp extends StatelessWidget {
+  const NavigationBarApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Bottom Navigation Bar',
-      theme: FlutterThemeData.darkThemeData,
-      home: MyHomePage(),
+      theme: FlutterThemeData.lightThemeData,
+      home: const NavigationExample(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
+class NavigationExample extends StatefulWidget {
+  const NavigationExample({super.key});
+
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<NavigationExample> createState() => _NavigationExampleState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _currentIndex = 0;
-
-  final List<Widget> _pages = [
-    // 添加你的页面组件
-    const Placeholder(child: Text('Page 1')),
-    const Placeholder(child: Text('Page 2')),
-    const Placeholder(child: Text('Page 3')),
-  ];
+class _NavigationExampleState extends State<NavigationExample> {
+  int currentPageIndex = 0;
 
   @override
   Widget build(BuildContext context) {
+    final ThemeData theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Bottom Navigation Bar Example'),
-      ),
-      body: _pages[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: (index) {
+      bottomNavigationBar: NavigationBar(
+        onDestinationSelected: (int index) {
           setState(() {
-            _currentIndex = index;
+            currentPageIndex = index;
           });
         },
-        items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
+        indicatorColor: FlutterThemeData.lightThemeData.primaryColor,
+        selectedIndex: currentPageIndex,
+        destinations: const <Widget>[
+          NavigationDestination(
+            selectedIcon: Icon(Icons.home),
+            icon: Icon(Icons.home_outlined),
             label: 'Home',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.add_circle),
-            label: 'Add',
+          NavigationDestination(
+            icon: Icon(Icons.notifications_sharp),
+            label: 'Notifications',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.manage_accounts),
-            label: 'Settings',
+          NavigationDestination(
+            icon: Icon(Icons.messenger_sharp),
+            label: 'Messages',
           ),
         ],
       ),
+      body: <Widget>[
+        /// Home page
+        Card(
+          shadowColor: Colors.transparent,
+          margin: const EdgeInsets.all(8.0),
+          child: SizedBox.expand(
+            child: Center(
+              child: Text(
+                'Home page',
+                style: theme.textTheme.titleLarge,
+              ),
+            ),
+          ),
+        ),
+
+        /// Notifications page
+        const Padding(
+          padding: EdgeInsets.all(8.0),
+          child: Column(
+            children: <Widget>[
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.notifications_sharp),
+                  title: Text('Notification 1'),
+                  subtitle: Text('This is a notification'),
+                ),
+              ),
+              Card(
+                child: ListTile(
+                  leading: Icon(Icons.notifications_sharp),
+                  title: Text('Notification 2'),
+                  subtitle: Text('This is a notification'),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        /// Messages page
+        ListView.builder(
+          reverse: true,
+          itemCount: 2,
+          itemBuilder: (BuildContext context, int index) {
+            if (index == 0) {
+              return Align(
+                alignment: Alignment.centerRight,
+                child: Container(
+                  margin: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(8.0),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary,
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                  child: Text(
+                    'Hello',
+                    style: theme.textTheme.bodyLarge!
+                        .copyWith(color: theme.colorScheme.onPrimary),
+                  ),
+                ),
+              );
+            }
+            return Align(
+              alignment: Alignment.centerLeft,
+              child: Container(
+                margin: const EdgeInsets.all(8.0),
+                padding: const EdgeInsets.all(8.0),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  borderRadius: BorderRadius.circular(8.0),
+                ),
+                child: Text(
+                  'Hi!',
+                  style: theme.textTheme.bodyLarge!
+                      .copyWith(color: theme.colorScheme.onPrimary),
+                ),
+              ),
+            );
+          },
+        ),
+      ][currentPageIndex],
     );
   }
 }
