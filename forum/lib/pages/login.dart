@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import '../theme/theme_data.dart';
-import 'homepage.dart';
+import '../main.dart';
 
 class LoginLayout extends StatelessWidget{
   @override
   Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
-        title: Center(
+        title: const Center(
           child: Text(
             'Login'
           )
@@ -49,7 +49,7 @@ class Login extends StatelessWidget{
             const SizedBox(height: 20),
             ElevatedButton(
                 onPressed: (){
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => MyHomePage()));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => NavigationExample()));
                   },
                 child: const Text('登录'),
                 style: ButtonStyle(
