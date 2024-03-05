@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:forum/theme/theme_data.dart';
-
+import 'pages/home.dart';
 /// Flutter code sample for [NavigationBar].
 
 void main() => runApp(const NavigationBarApp());
@@ -59,13 +59,10 @@ class _NavigationExampleState extends State<NavigationExample> {
         /// Home page
         Card(
           shadowColor: Colors.transparent,
-          margin: const EdgeInsets.all(8.0),
+          margin: EdgeInsets.all(8.0),
           child: SizedBox.expand(
             child: Center(
-              child: Text(
-                'Home page',
-                style: theme.textTheme.titleLarge,
-              ),
+              child: HomePage(),
             ),
           ),
         ),
