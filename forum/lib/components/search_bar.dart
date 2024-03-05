@@ -15,6 +15,7 @@ class _SearchBarAppState extends State<SearchBarApp> {
 
   @override
   Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return MaterialApp(
       theme: FlutterThemeData.lightThemeData,
@@ -36,7 +37,7 @@ class _SearchBarAppState extends State<SearchBarApp> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 55.0),
+              padding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 65.0),
               child: SearchAnchor(
                   builder: (BuildContext context, SearchController controller) {
                     return SearchBar(
@@ -65,7 +66,24 @@ class _SearchBarAppState extends State<SearchBarApp> {
                   );
                 });
               }),
-            )
+            ),
+            Positioned(
+              top: 35,
+              right: 1,
+              child:  FloatingActionButton(
+                foregroundColor: colorScheme.primary,
+                backgroundColor: colorScheme.surface,
+                onPressed: () {
+                  // Add your onPressed code here!
+                },
+                child: const IconTheme(
+                  data: IconThemeData(
+                    size: 30.0, // 设置图标大小为40.0
+                  ),
+                  child: Icon(Icons.mail),
+                ),
+              ),
+            ),
           ],
         ),
       ),
