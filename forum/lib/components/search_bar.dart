@@ -18,6 +18,7 @@ class _SearchBarAppState extends State<SearchBarApp> {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       theme: FlutterThemeData.lightThemeData,
       home: Scaffold(
         body: Stack(
@@ -68,17 +69,18 @@ class _SearchBarAppState extends State<SearchBarApp> {
               }),
             ),
             Positioned(
-              top: 35,
+              top: 32,
               right: 1,
               child:  FloatingActionButton(
                 foregroundColor: colorScheme.primary,
-                backgroundColor: colorScheme.surface,
+                backgroundColor: colorScheme.background,
                 onPressed: () {
                   // Add your onPressed code here!
                 },
                 child: const IconTheme(
                   data: IconThemeData(
                     size: 30.0, // 设置图标大小为40.0
+                    color: Color(0xFFB93C5D),
                   ),
                   child: Icon(Icons.mail),
                 ),
