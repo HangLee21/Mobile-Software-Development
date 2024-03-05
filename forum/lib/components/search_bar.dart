@@ -17,16 +17,7 @@ class _SearchBarAppState extends State<SearchBarApp> {
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme.of(context).colorScheme;
 
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        colorSchemeSeed: Colors.blue,
-        //启用
-        useMaterial3: true,
-      ),
-      home: Scaffold(
-        body: Stack(
+    return Stack(
           children: [
             Positioned(
               top: 35,
@@ -92,8 +83,6 @@ class _SearchBarAppState extends State<SearchBarApp> {
               ),
             ),
           ],
-        ),
-      ),
-    );
+        );
   }
 }

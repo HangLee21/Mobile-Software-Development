@@ -15,7 +15,7 @@ class ForumApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       // theme: FlutterThemeData.lightThemeData,
         theme: ThemeData(
-          brightness: Brightness.dark,
+          brightness: Brightness.light,
           colorSchemeSeed: Colors.blue,
           //启用
           useMaterial3: true,
