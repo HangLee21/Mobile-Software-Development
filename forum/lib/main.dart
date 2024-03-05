@@ -13,7 +13,13 @@ class ForumApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: FlutterThemeData.lightThemeData,
+      // theme: FlutterThemeData.lightThemeData,
+        theme: ThemeData(
+          brightness: Brightness.dark,
+          colorSchemeSeed: Colors.blue,
+          //启用
+          useMaterial3: true,
+        ),
       home: LoginLayout(),
     );
   }
