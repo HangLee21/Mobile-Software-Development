@@ -32,11 +32,13 @@ class _NavigationExampleState extends State<NavigationExample> {
             label: '主页',
           ),
           NavigationDestination(
-            icon: Icon(Icons.notifications_sharp),
+            selectedIcon: Icon(Icons.chat_bubble),
+            icon: Icon(Icons.chat_bubble_outline),
             label: '消息',
           ),
           NavigationDestination(
-            icon: Icon(Icons.messenger_sharp),
+            selectedIcon: Icon(Icons.account_circle),
+            icon: Icon(Icons.account_circle_outlined),
             label: '个人中心',
           ),
         ],
