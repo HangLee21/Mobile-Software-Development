@@ -22,7 +22,6 @@ class CardList extends StatelessWidget {
               physics: NeverScrollableScrollPhysics(), // 禁止内部ListView滚动
               itemCount: cards.length,
               itemBuilder: (BuildContext context, int index) {
-                print(index);
                 return cards[index];
               },
             ),

@@ -1,3 +1,5 @@
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
 import 'package:forum/constants.dart';
 
@@ -18,6 +20,9 @@ class CarouselCard extends StatelessWidget {
     this.assetDarkColor,
     this.textColor,
     required this.studyRoute,
+    required this.title,
+    required this.content,
+    required this.card_height,
   });
 
   final ImageProvider? asset;
@@ -26,6 +31,9 @@ class CarouselCard extends StatelessWidget {
   final Color? assetDarkColor;
   final Color? textColor;
   final String studyRoute;
+  final String title;
+  final String content;
+  final double card_height;
 
   @override
   Widget build(BuildContext context) {
@@ -34,16 +42,10 @@ class CarouselCard extends StatelessWidget {
     final asset = isDark ? assetDark : this.asset;
     final assetColor = isDark ? assetDarkColor : this.assetColor;
     final textColor = isDark ? Colors.white.withOpacity(0.87) : this.textColor;
-    final isDesktop = false;
-
+    final image_height = this.card_height - 40;
     return Container(
-      padding: EdgeInsets.symmetric(
-          horizontal: isDesktop
-              ? _carouselItemDesktopMargin
-              : _carouselItemMobileMargin),
       margin: const EdgeInsets.symmetric(vertical: 16.0),
-      height: 200,
-      width: _carouselItemWidth,
+      height: 300,
       child: Material(
         // Makes integration tests possible.
         color: assetColor,
@@ -51,36 +53,38 @@ class CarouselCard extends StatelessWidget {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         clipBehavior: Clip.antiAlias,
         child: Stack(
-          fit: StackFit.expand,
           children: [
             if (asset != null)
               FadeInImage(
                 image: asset,
                 placeholder: MemoryImage(kTransparentImage),
                 fit: BoxFit.cover,
-                height: _carouselHeightMin,
+                width: double.infinity,
+                height: image_height,
                 fadeInDuration: entranceAnimationDuration,
               ),
             Padding(
               padding: const EdgeInsetsDirectional.fromSTEB(16, 0, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    'Test',
-                    style: textTheme.bodySmall!.apply(color: textColor),
-                    maxLines: 3,
-                    overflow: TextOverflow.visible,
-                  ),
-                  Text(
-                    'Test',
-                    style: textTheme.labelSmall!.apply(color: textColor),
-                    maxLines: 5,
-                    overflow: TextOverflow.visible,
-                  ),
-                ],
-              ),
+              child: Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    Text(
+                      this.title,
+                      style: textTheme.bodySmall!.apply(color: textColor),
+                      maxLines: 3,
+                      overflow: TextOverflow.visible,
+                    ),
+                    Text(
+                      this.content,
+                      style: textTheme.labelSmall!.apply(color: textColor),
+                      maxLines: 5,
+                      overflow: TextOverflow.visible,
+                    ),
+                  ],
+                ),
+              )
             ),
             Positioned.fill(
               child: Material(
@@ -101,3 +105,4 @@ class CarouselCard extends StatelessWidget {
     );
   }
 }
+
