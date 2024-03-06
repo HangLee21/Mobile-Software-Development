@@ -13,7 +13,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   // TODO get cards from backend
   List<CarouselCard> cards = [
-    CarouselCard(studyRoute: '', title: 'Test1', content: 'Content1', asset: AssetImage(
+    CarouselCard(studyRoute: '', title: '通缉犯', content: '嫌犯越狱出逃', asset: AssetImage(
       'assets/images/1.jpg',
     ),card_height: 250,),
     CarouselCard(studyRoute: '', title: 'Test2', content: 'Content2', asset: AssetImage(
