@@ -39,15 +39,20 @@ class ContentCard extends StatelessWidget {
                   subtitle: Text(card_content),
                 ),
                 if(media_urls != null)
-                  Flexible(
-                    flex: 1,
-                    child: FadeInImage(
-                      image: AssetImage(
-                        this.media_urls![0],
-                      ),
-                      placeholder: MemoryImage(kTransparentImage),
-                      fit: BoxFit.cover,
-                      fadeInDuration: entranceAnimationDuration,
+                  SizedBox(
+                    height: 200.0,
+                    child: PageView.builder(
+                      itemCount: this.media_urls!.length,
+                      itemBuilder: (context, index) {
+                        return FadeInImage(
+                          image: AssetImage(
+                            this.media_urls![index],
+                          ),
+                          placeholder: MemoryImage(kTransparentImage),
+                          fit: BoxFit.cover,
+                          fadeInDuration: entranceAnimationDuration,
+                        );
+                      },
                     ),
                   ),
               ],
