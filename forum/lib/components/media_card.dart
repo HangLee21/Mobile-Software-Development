@@ -87,6 +87,7 @@ class CarouselCard extends StatelessWidget {
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () {
+                    // TODO change route
                     Navigator.of(context)
                         .popUntil((route) => route.settings.name == '/');
                     Navigator.of(context).restorablePushNamed(studyRoute);

@@ -58,8 +58,9 @@ class _HomePageState extends State<HomePage> {
     ContentCard(title: 'Test2', content: 'Content2'),
     ContentCard(title: 'Test3', content: 'Content3'),
     ContentCard(title: 'Test4', content: 'Content4', media_urls: [
-        'assets/images/jadeite.png'
-    ],),
+        'assets/images/jadeite.png',
+        'assets/images/1.jpg'
+    ], url: '',),
   ];
   @override
   Widget build(BuildContext context) {
