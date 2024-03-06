@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:forum/components/content_card.dart';
 import '../components/search_bar.dart';
 import 'package:forum/components/media_card.dart';
 import 'package:forum/components/card_list.dart';
@@ -9,6 +10,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // TODO get cards from backend
   final cards = <Widget>[
     const CarouselCard(
       asset: AssetImage(
@@ -50,6 +52,15 @@ class _HomePageState extends State<HomePage> {
       studyRoute: '',
     ),
   ];
+
+  List<ContentCard> content_cards = [
+    ContentCard(title: 'Test1', content: 'Content1'),
+    ContentCard(title: 'Test2', content: 'Content2'),
+    ContentCard(title: 'Test3', content: 'Content3'),
+    ContentCard(title: 'Test4', content: 'Content4', media_urls: [
+        'assets/jadeite.png'
+    ],),
+  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,9 +79,9 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
               ),
-              const Flexible(
+              Flexible(
                 flex: 1,
-                child: CardList(),
+                child: CardList(cards: content_cards),
               ),
             ],
           )

@@ -44,7 +44,6 @@ class ContentCard extends StatelessWidget {
                     child: FadeInImage(
                       image: AssetImage(
                         this.media_urls![0],
-                        package: 'flutter_gallery_assets',
                       ),
                       placeholder: MemoryImage(kTransparentImage),
                       fit: BoxFit.cover,

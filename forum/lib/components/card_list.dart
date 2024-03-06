@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:forum/components/content_card.dart';
 
 class CardList extends StatelessWidget {
-  const CardList({super.key});
+  const CardList({
+    super.key,
+    required this.cards,
+  });
 
-  static const cards = <Widget>[
-    ContentCard(title: 'Test', content: 'Test')
-  ];
+  final List<ContentCard> cards;
 
   @override
   Widget build(BuildContext context) {
