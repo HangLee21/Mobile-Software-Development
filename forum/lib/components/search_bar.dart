@@ -20,7 +20,7 @@ class _SearchBarAppState extends State<SearchBarApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        brightness: Brightness.dark,
+        brightness: Brightness.light,
         colorSchemeSeed: Colors.blue,
         //启用
         useMaterial3: true,

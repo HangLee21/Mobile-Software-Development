@@ -30,6 +30,11 @@ class Login extends StatelessWidget{
         child:Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const CircleAvatar(
+              foregroundImage: AssetImage('assets/images/1.jpg'),
+              radius: 40,
+            ),
+            const SizedBox(height: 20),
             const TextField(
               textDirection: TextDirection.ltr,
               obscureText: false,
@@ -56,6 +61,16 @@ class Login extends StatelessWidget{
                 style: ButtonStyle(
                     minimumSize: MaterialStateProperty.all(Size(250, 50))
                 ),
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              onPressed: (){
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => NavigationExample()));
+              },
+              child: const Text('注册'),
+              style: ButtonStyle(
+                  minimumSize: MaterialStateProperty.all(Size(250, 50))
+              ),
             )
           ],
         ),
