@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:forum/pages/pinputpage.dart';
 import 'navigation.dart';
 
 class SignupLayout extends StatelessWidget{
@@ -27,8 +30,7 @@ class _SignupState extends State<Signup>{
   String password1 = '';
   String password2 = '';
   String email = '';
-  String code = '';
-  bool gettingcode = false;
+
   @override
   Widget build(BuildContext context) {
 
@@ -82,7 +84,7 @@ class _SignupState extends State<Signup>{
             const SizedBox(height: 20),
             TextField(
               textDirection: TextDirection.ltr,
-              obscureText: true,
+              obscureText: false,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: '邮箱',
@@ -94,60 +96,16 @@ class _SignupState extends State<Signup>{
               },
             ),
             const SizedBox(height: 20),
-            !gettingcode?
             ElevatedButton(
-              onPressed: (){
-                setState(() {
-                  //TODO 获取验证码
-                  gettingcode = true;
-                });
+              onPressed: (username == '' || password1 == '' || password2 == '' || email == '')?null:(){
+                //TODO 注册
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => PinputPage(email: email)));
               },
               style: ButtonStyle(
                   minimumSize: MaterialStateProperty.all(Size(250, 50))
               ),
-              child: const Text('获取验证码'),
-            ):Column(
-              children: [
-                TextField(
-                  textDirection: TextDirection.ltr,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    border: OutlineInputBorder(),
-                    labelText: '验证码',
-                  ),
-                  onChanged: (str){
-                    setState(() {
-                      code = str;
-                    });
-                  },
-                ),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: (){
-                    //TODO 注册
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => NavigationExample()));
-                  },
-                  style: ButtonStyle(
-                      minimumSize: MaterialStateProperty.all(Size(250, 50))
-                  ),
-                  child: const Text('注册'),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: (){
-                    setState(() {
-                      //TODO 获取验证码
-                      gettingcode = true;
-                    });
-                  },
-                  style: ButtonStyle(
-                      minimumSize: MaterialStateProperty.all(Size(250, 50))
-                  ),
-                  child: const Text('重新获取验证码'),
-                )
-              ]
-            )
-
+              child: const Text('注册'),
+            ),
           ],
         ),
       ),

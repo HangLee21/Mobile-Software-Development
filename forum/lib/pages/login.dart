@@ -62,7 +62,8 @@ class _LoginState extends State<Login>{
               obscureText: false,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: 'Username',
+                labelText: '用户名',
+                hintText: '输入8-16位数字或字母'
               ),
               onChanged: (str){
                 setState(() {
@@ -76,7 +77,8 @@ class _LoginState extends State<Login>{
               obscureText: true,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
-                labelText: 'Password',
+                labelText: '密码',
+                hintText: '输入8-16位数字或字母'
               ),
               onChanged: (str){
                 setState(() {
