@@ -62,7 +62,8 @@ class AccountPage extends StatelessWidget{
             const AccountPageCard('收藏'),
             const AccountPageCard('我的创作'),
             const AccountPageCard('我的关注'),
-            const AccountPageCard('设置')
+            const AccountPageCard('历史记录'),
+            const AccountPageCard('设置'),
           ],
         )
     );
