@@ -30,7 +30,6 @@ class _SearchBarAppState extends State<SearchBarApp> {
               },
               child: CircleAvatar(
                 radius: 25.0, // 设置半径为50.0，调整大小
-                backgroundColor: FlutterThemeData.lightThemeData.primaryColor,
                 child: const Text('AH'),
               )
           ),
@@ -70,15 +69,15 @@ class _SearchBarAppState extends State<SearchBarApp> {
           top: 32,
           right: 1,
           child: FloatingActionButton(
-            foregroundColor: colorScheme.primary,
+            foregroundColor: colorScheme.secondary,
             backgroundColor: colorScheme.background,
             onPressed: () {
               // Add your onPressed code here!
             },
-            child: const IconTheme(
+            child: IconTheme(
               data: IconThemeData(
                 size: 30.0, // 设置图标大小为40.0
-                color: Color(0xFFB93C5D),
+                color: colorScheme.primary,
               ),
               child: Icon(Icons.mail),
             ),
