@@ -9,29 +9,66 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final cards = <Widget>[
+    const CarouselCard(
+      asset: AssetImage(
+        'assets/studies/fortnightly_card.png',
+        package: 'flutter_gallery_assets',
+      ),
+      assetColor: Colors.white,
+      assetDark: AssetImage(
+        'assets/studies/fortnightly_card_dark.png',
+        package: 'flutter_gallery_assets',
+      ),
+      assetDarkColor: Color(0xFF1F1F1F),
+      studyRoute: '',
+    ),
+    const CarouselCard(
+      asset: AssetImage(
+        'assets/studies/fortnightly_card.png',
+        package: 'flutter_gallery_assets',
+      ),
+      assetColor: Colors.white,
+      assetDark: AssetImage(
+        'assets/studies/fortnightly_card_dark.png',
+        package: 'flutter_gallery_assets',
+      ),
+      assetDarkColor: Color(0xFF1F1F1F),
+      studyRoute: '',
+    ),
+    const CarouselCard(
+      asset: AssetImage(
+        'assets/studies/fortnightly_card.png',
+        package: 'flutter_gallery_assets',
+      ),
+      assetColor: Colors.white,
+      assetDark: AssetImage(
+        'assets/studies/fortnightly_card_dark.png',
+        package: 'flutter_gallery_assets',
+      ),
+      assetDarkColor: Color(0xFF1F1F1F),
+      studyRoute: '',
+    ),
+  ];
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         // 在这里可以添加你的页面内容
-        child: const Center(
+        child: Center(
           child:  Column(
             children: [
-              SearchBarApp(),
-              CarouselCard(
-                asset: const AssetImage(
-                  'assets/studies/fortnightly_card.png',
-                  package: 'flutter_gallery_assets',
+              const SearchBarApp(),
+              SizedBox(
+                height: 200.0,
+                child: PageView.builder(
+                  itemCount: cards.length,
+                  itemBuilder: (context, index) {
+                    return cards[index];
+                  },
                 ),
-                assetColor: Colors.white,
-                assetDark: const AssetImage(
-                  'assets/studies/fortnightly_card_dark.png',
-                  package: 'flutter_gallery_assets',
-                ),
-                assetDarkColor: const Color(0xFF1F1F1F),
-                studyRoute: '',
               ),
-              Flexible(
+              const Flexible(
                 flex: 1,
                 child: CardList(),
               ),
