@@ -11,23 +11,13 @@ class CardList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: double.infinity,
-      child: SingleChildScrollView(
-        physics: ClampingScrollPhysics(),
-        child: Column(
-          children: [
-            ListView.builder(
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(), // 禁止内部ListView滚动
-              itemCount: cards.length,
-              itemBuilder: (BuildContext context, int index) {
-                return cards[index];
-              },
-            ),
-          ],
-        ),
-      ),
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(), // 禁止内部ListView滚动
+      itemCount: cards.length,
+      itemBuilder: (BuildContext context, int index) {
+        return cards[index];
+      },
     );
   }
 }

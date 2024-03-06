@@ -34,23 +34,30 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        // 在这里可以添加你的页面内容
-        child: Center(
-          child:  Column(
-            children: [
-              const SearchBarApp(),
-              SizedBox(
-                height: 300.0,
-                child: AutoSwitchPageView(cards: cards,)
-              ),
-              Flexible(
-                flex: 1,
-                child: CardList(cards: content_cards),
-              ),
-            ],
-          )
-        ),
+      body: Center(
+          child: SizedBox(
+              height: double.infinity,
+              child: Column(
+                children: [
+                  const SearchBarApp(),
+                  Expanded(
+                    child: SingleChildScrollView(
+                    child:
+                      Column(
+                        children: [
+                          SizedBox(
+                              height: 300.0,
+                              child: AutoSwitchPageView(cards: cards,)
+                          ),
+                          CardList(cards: content_cards,)
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              )
+          ),
+
       ),
     );
   }
