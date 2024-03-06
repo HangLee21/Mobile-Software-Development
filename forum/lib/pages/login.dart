@@ -1,18 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:forum/pages/signup.dart';
 import '../theme/theme_data.dart';
 import '../main.dart';
 import 'navigation.dart';
 
 class LoginLayout extends StatelessWidget{
+
   @override
   Widget build(BuildContext context){
+    final ThemeData theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Center(
-          child: Text(
-            'Login'
-          )
-        )
+        title: Container(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  height: 25,
+                  child: Image.asset('assets/images/logo_transparent.png'),
+                ),
+
+                const SizedBox(width: 10,),
+                const Text('万源论坛',style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),)
+              ],
+            )
+        ),
       ),
       body: Center(
         child: Login(),
@@ -21,7 +36,14 @@ class LoginLayout extends StatelessWidget{
   }
 }
 
-class Login extends StatelessWidget{
+class Login extends StatefulWidget{
+  @override
+  State<StatefulWidget> createState() => _LoginState();
+}
+
+class _LoginState extends State<Login>{
+  String username = '';
+  String password = '';
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -35,42 +57,53 @@ class Login extends StatelessWidget{
               radius: 40,
             ),
             const SizedBox(height: 20),
-            const TextField(
+            TextField(
               textDirection: TextDirection.ltr,
               obscureText: false,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'Username',
               ),
+              onChanged: (str){
+                setState(() {
+                  username = str;
+                });
+              },
             ),
             const SizedBox(height: 20),
-            const TextField(
+            TextField(
               textDirection: TextDirection.ltr,
               obscureText: true,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 labelText: 'Password',
               ),
+              onChanged: (str){
+                setState(() {
+                  password = str;
+                });
+              },
             ),
             const SizedBox(height: 20),
             ElevatedButton(
                 onPressed: (){
+                  //TODO 登录
                   Navigator.of(context).push(MaterialPageRoute(builder: (context) => NavigationExample()));
                   },
-                child: const Text('登录'),
                 style: ButtonStyle(
                     minimumSize: MaterialStateProperty.all(Size(250, 50))
                 ),
+                child: const Text('登录'),
             ),
             const SizedBox(height: 10),
             ElevatedButton(
               onPressed: (){
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => NavigationExample()));
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => SignupLayout()));
               },
-              child: const Text('注册'),
               style: ButtonStyle(
                   minimumSize: MaterialStateProperty.all(Size(250, 50))
               ),
+              child: const Text('注册'),
             )
           ],
         ),

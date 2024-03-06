@@ -6,12 +6,14 @@ Map iconDict = const {
   '收藏': Icons.star,
   '我的创作': Icons.edit,
   '我的关注': Icons.favorite_rounded,
+  '历史记录': Icons.history,
   '设置': Icons.settings,
 };
 Map colorDict =  {
   '收藏': Colors.yellow[600],
   '我的创作': Colors.blue,
   '我的关注': Colors.red,
+  '历史记录': Colors.black,
   '设置': Colors.grey,
 };
 
@@ -23,7 +25,7 @@ class AccountPageCard extends StatelessWidget{
 
     return Card(
       child: Container(
-          height: 50,
+          height: 70,
           child: InkWell(
             onTap: (){
 
