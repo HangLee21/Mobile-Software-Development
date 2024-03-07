@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:forum/pages/chatpage.dart';
 
 class NotificationCard extends StatelessWidget{
   final String friendname;
@@ -16,7 +17,7 @@ class NotificationCard extends StatelessWidget{
         height: 80,
         child: InkWell(
           onTap: (){
-
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChatPage(userId: '2021011840')));
           },
           onLongPress: ()=>_showPopupMenu(context),
           child: Row(
@@ -24,7 +25,7 @@ class NotificationCard extends StatelessWidget{
               const SizedBox(width: 10,),
               CircleAvatar(
                 radius: 30,
-                backgroundImage: NetworkImage(url),
+                // backgroundImage: NetworkImage(url),
               ),
               const SizedBox(width: 20,),
               Expanded(child: Column(

@@ -46,7 +46,8 @@ class CarouselCard extends StatelessWidget {
       height: 300,
       child: Material(
         // Makes integration tests possible.
-        color: assetColor,
+        // color: assetColor,
+        color: Colors.lightBlue[50],
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         clipBehavior: Clip.antiAlias,
