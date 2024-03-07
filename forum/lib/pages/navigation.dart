@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:forum/pages/account.dart';
+import 'package:forum/pages/notification.dart';
 import 'package:forum/theme/theme_data.dart';
 import 'package:forum/pages/home.dart';
 
@@ -56,27 +57,28 @@ class _NavigationExampleState extends State<NavigationExample> {
         ),
 
         /// Notifications page
-        const Padding(
-          padding: EdgeInsets.all(8.0),
-          child: Column(
-            children: <Widget>[
-              Card(
-                child: ListTile(
-                  leading: Icon(Icons.notifications_sharp),
-                  title: Text('Notification 1'),
-                  subtitle: Text('This is a notification'),
-                ),
-              ),
-              Card(
-                child: ListTile(
-                  leading: Icon(Icons.notifications_sharp),
-                  title: Text('Notification 2'),
-                  subtitle: Text('This is a notification'),
-                ),
-              ),
-            ],
-          ),
-        ),
+        NotificationPage(),
+        // const Padding(
+        //   padding: EdgeInsets.all(8.0),
+        //   child: Column(
+        //     children: <Widget>[
+        //       Card(
+        //         child: ListTile(
+        //           leading: Icon(Icons.notifications_sharp),
+        //           title: Text('Notification 1'),
+        //           subtitle: Text('This is a notification'),
+        //         ),
+        //       ),
+        //       Card(
+        //         child: ListTile(
+        //           leading: Icon(Icons.notifications_sharp),
+        //           title: Text('Notification 2'),
+        //           subtitle: Text('This is a notification'),
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        // ),
 
         /// Account page
         const AccountPage("chl","2021011840")
