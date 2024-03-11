@@ -3,10 +3,13 @@ import 'package:forum/pages/account.dart';
 import 'package:forum/pages/notification.dart';
 import 'package:forum/theme/theme_data.dart';
 import 'package:forum/pages/home.dart';
+import 'package:forum/localstorage/localstorage.dart';
 
 class NavigationExample extends StatefulWidget {
-  const NavigationExample({super.key});
-
+  const NavigationExample({super.key, required this.username, required this.userid, required this.avatar});
+  final String username;
+  final String userid;
+  final String avatar;
   @override
   State<NavigationExample> createState() => _NavigationExampleState();
 }
@@ -58,30 +61,9 @@ class _NavigationExampleState extends State<NavigationExample> {
 
         /// Notifications page
         NotificationPage(),
-        // const Padding(
-        //   padding: EdgeInsets.all(8.0),
-        //   child: Column(
-        //     children: <Widget>[
-        //       Card(
-        //         child: ListTile(
-        //           leading: Icon(Icons.notifications_sharp),
-        //           title: Text('Notification 1'),
-        //           subtitle: Text('This is a notification'),
-        //         ),
-        //       ),
-        //       Card(
-        //         child: ListTile(
-        //           leading: Icon(Icons.notifications_sharp),
-        //           title: Text('Notification 2'),
-        //           subtitle: Text('This is a notification'),
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        // ),
 
         /// Account page
-        const AccountPage("chl","2021011840")
+        AccountPage(username:widget.username,userid: widget.userid,avatar: widget.avatar)
       ][currentPageIndex],
     );
   }

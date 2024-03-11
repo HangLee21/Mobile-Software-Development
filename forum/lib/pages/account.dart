@@ -1,11 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:forum/components/accountpagecard.dart';
+import '../localstorage/localstorage.dart';
 
 class AccountPage extends StatelessWidget{
   final String username;
   final String userid;
-  const AccountPage(this.username,this.userid, {super.key});
+  final String avatar;
+  const AccountPage({super.key, required this.avatar,required this.username,required this.userid});
 
   @override
   Widget build(BuildContext context){
@@ -20,8 +22,8 @@ class AccountPage extends StatelessWidget{
                 child: Row(
                   children: [
                     const SizedBox(width: 20,),
-                    const CircleAvatar(
-                      foregroundImage: AssetImage('assets/images/1.jpg'),
+                    CircleAvatar(
+                      foregroundImage: NetworkImage(avatar),
                       radius: 50,
                     ),
                     const SizedBox(width: 20,),

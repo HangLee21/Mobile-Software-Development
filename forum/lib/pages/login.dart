@@ -1,8 +1,15 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
+import 'package:forum/localstorage/localstorage.dart';
 import 'package:forum/pages/signup.dart';
+import 'package:http/http.dart' as http;
 import '../theme/theme_data.dart';
 import '../main.dart';
+import '../url/user.dart';
 import 'navigation.dart';
+
 
 class LoginLayout extends StatelessWidget{
 
@@ -90,8 +97,27 @@ class _LoginState extends State<Login>{
             ElevatedButton(
                 onPressed: (){
                   //TODO 登录
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => NavigationExample()));
-                  },
+                  requestPost(
+                    '/user/log_in',
+                    {
+                      'username': username,
+                      'password': password,
+                    },
+                    {}
+                  ).then((http.Response res){
+                    if(res.statusCode == 200){
+                      Map body = json.decode(res.body) as Map;
+                      LocalStorage.setString('token', body['token']);
+                      LocalStorage.setString('userName', body['content']['userName']);
+                      LocalStorage.setString('userId', body['content']['userId']);
+                      LocalStorage.setString('userAvatar', body['content']['userAvatar']);
+                      LocalStorage.setString('userEmail', body['content']['userEmail']);
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => NavigationExample(username:body['content']['userName'], userid: body['content']['userId'],avatar: body['content']['userAvatar'])));
+                    }else{
+                      throw Exception("登录失败");
+                    }
+                  });
+                },
                 style: ButtonStyle(
                     minimumSize: MaterialStateProperty.all(Size(250, 50))
                 ),
