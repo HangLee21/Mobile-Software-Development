@@ -3,13 +3,9 @@ import 'package:forum/pages/account.dart';
 import 'package:forum/pages/notification.dart';
 import 'package:forum/theme/theme_data.dart';
 import 'package:forum/pages/home.dart';
-import 'package:forum/localstorage/localstorage.dart';
 
 class NavigationExample extends StatefulWidget {
-  const NavigationExample({super.key, required this.username, required this.userid, required this.avatar});
-  final String username;
-  final String userid;
-  final String avatar;
+  const NavigationExample({super.key});
   @override
   State<NavigationExample> createState() => _NavigationExampleState();
 }
@@ -63,7 +59,7 @@ class _NavigationExampleState extends State<NavigationExample> {
         NotificationPage(),
 
         /// Account page
-        AccountPage(username:widget.username,userid: widget.userid,avatar: widget.avatar)
+        AccountPage()
       ][currentPageIndex],
     );
   }

@@ -1,14 +1,30 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:forum/components/accountpagecard.dart';
-import '../localstorage/localstorage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class AccountPage extends StatelessWidget{
-  final String username;
-  final String userid;
-  final String avatar;
-  const AccountPage({super.key, required this.avatar,required this.username,required this.userid});
+class AccountPage extends StatefulWidget {
+  @override
+  _AccountState createState() => _AccountState();
 
+}
+class _AccountState extends State<AccountPage>{
+  late  String username;
+  late  String userid;
+  late  String avatar;
+
+  @override
+  void initState(){
+    super.initState();
+    init();
+  }
+
+  void init() async {
+    sharedPreferences = await SharedPreferences.getInstance();
+    setState(() {});
+  }
+
+  SharedPreferences? sharedPreferences;
   @override
   Widget build(BuildContext context){
     final ThemeData theme = Theme.of(context);
@@ -23,7 +39,7 @@ class AccountPage extends StatelessWidget{
                   children: [
                     const SizedBox(width: 20,),
                     CircleAvatar(
-                      foregroundImage: NetworkImage(avatar),
+                      foregroundImage: NetworkImage(sharedPreferences?.getString('userAvatar')??''),
                       radius: 50,
                     ),
                     const SizedBox(width: 20,),
@@ -33,7 +49,7 @@ class AccountPage extends StatelessWidget{
                         children: [
                           Row(
                               children: [
-                                Text(username,
+                                Text(sharedPreferences?.getString('userName')??'',
                                     style: const TextStyle(
                                       fontSize: 30,
                                     )
@@ -43,7 +59,7 @@ class AccountPage extends StatelessWidget{
                           const SizedBox(height: 20),
                           Row(
                               children: [
-                                Text('id: $userid',
+                                Text('id: ${sharedPreferences?.getString('userId')??''}',
                                     style: const TextStyle(
                                         fontSize: 15,
                                         color: Colors.grey
