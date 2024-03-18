@@ -14,7 +14,11 @@ class ChatPage extends StatefulWidget{
 class _ChatPageState extends State<ChatPage>{
   List<Map> messages = [
     {'name': 'chl','content': 'content','me?': true,'createdAt': '2024-03-07 15:56','status': 1},
-    {'name': 'chl','content': 'contentfdsfdsssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss','me?': false,'createdAt': '2024-03-07 15:56','status': 1}
+    {'name': 'chl','content': 'contentfdsfdsssss','me?': false,'createdAt': '2024-03-07 15:56','status': 1},
+    {'name': 'chl','content': 'content','me?': true,'createdAt': '2024-03-07 15:56','status': 1},
+    {'name': 'chl','content': 'contentfdsfdsssss','me?': false,'createdAt': '2024-03-07 15:56','status': 1},{'name': 'chl','content': 'content','me?': true,'createdAt': '2024-03-07 15:56','status': 1},
+    {'name': 'chl','content': 'contentfdsfdsssss','me?': false,'createdAt': '2024-03-07 15:56','status': 1},
+
   ];
   // String employeeNo;
   double contentMaxWidth = 500;

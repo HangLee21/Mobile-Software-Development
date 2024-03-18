@@ -18,7 +18,7 @@ class CarouselDemo extends StatelessWidget {
   @override
   Widget build(context) {
     images =
-        fileNames.map((file) => Image.asset(file, fit: BoxFit.cover)).toList();
+        fileNames.map((file) => Image.network(file, fit: BoxFit.cover)).toList();
     return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),

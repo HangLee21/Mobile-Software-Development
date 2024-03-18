@@ -1,26 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:forum/pages/postpage.dart';
 import 'carousel.dart';
 import '../constants.dart';
 
 class ContentCard extends StatelessWidget {
-  const ContentCard({
+  ContentCard({
     super.key,
     required this.title,
     required this.content,
     this.media_urls,
-    this.url,
+    required this.postId,
+    this.avatar,
+    this.username,
   });
 
   final String title;
   final String content;
+  final String? avatar;
+  final String? username;
   final List<String>? media_urls;
-  final String? url;
+  final String? postId;
 
   @override
   Widget build(BuildContext context) {
     final card_title = this.title;
     final card_content = this.content;
     final media_urls = this.media_urls;
+    final avatar = this.avatar;
     // TODO
 
     return Center(
@@ -38,18 +44,23 @@ class ContentCard extends StatelessWidget {
             child: InkWell(
               splashColor: Colors.blue.withAlpha(30),
               onTap: () {
-                if(this.url != null){
-                  Navigator.of(context)
-                      .popUntil((route) => route.settings.name == '/');
-                  Navigator.of(context).restorablePushNamed(url!);
+                if(this.postId != null){
+                  // Navigator.of(context)
+                  //     .popUntil((route) => route.settings.name == '/');
+                  // Navigator.of(context).restorablePushNamed(url!);
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PostPage(postId!)));
                 }
               },
 
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: <Widget>[
                   ListTile(
-                    leading: Icon(Icons.album),
+                    // leading: Icon(Icons.album),
+                    leading: CircleAvatar(
+                      backgroundImage: NetworkImage(avatar??''),
+                    ),
                     title: Text(
                       card_title,
                       overflow: TextOverflow.ellipsis, // 设置溢出时显示省略号

@@ -13,18 +13,39 @@ class NavigationExample extends StatefulWidget {
 class _NavigationExampleState extends State<NavigationExample> {
   int currentPageIndex = 0;
 
+  var _pageController = PageController();
+  var _pages;
+  void initData() {
+    _pages = [
+      Card(
+        shadowColor: Colors.transparent,
+        margin: EdgeInsets.all(8.0),
+        child: SizedBox.expand(
+          child: Center(
+            child: HomePage(),
+          ),
+        ),
+      ),
+      NotificationPage(),
+      AccountPage()
+    ];
+  }
+  int _tabIndex = 0;
+
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+    initData();
     return Scaffold(
       bottomNavigationBar: NavigationBar(
         onDestinationSelected: (int index) {
           setState(() {
-            currentPageIndex = index;
+            _tabIndex = index;
+            _pageController.jumpToPage(index);
           });
         },
 
-        selectedIndex: currentPageIndex,
+        selectedIndex: _tabIndex,
         destinations: const <Widget>[
           NavigationDestination(
             selectedIcon: Icon(Icons.home),
@@ -42,25 +63,25 @@ class _NavigationExampleState extends State<NavigationExample> {
             label: '个人中心',
           ),
         ],
+
       ),
-      body: <Widget>[
-        /// Home page
-        Card(
-          shadowColor: Colors.transparent,
-          margin: EdgeInsets.all(8.0),
-          child: SizedBox.expand(
-            child: Center(
-              child: HomePage(),
-            ),
-          ),
-        ),
-
-        /// Notifications page
-        NotificationPage(),
-
-        /// Account page
-        AccountPage()
-      ][currentPageIndex],
+      body: SafeArea(
+        child: PageView.builder(
+          //要点1
+            physics: NeverScrollableScrollPhysics(),
+            //禁止页面左右滑动切换
+            controller: _pageController,
+            onPageChanged: _pageChanged,
+            //回调函数
+            itemCount: _pages.length,
+            itemBuilder: (context, index) => _pages[index]),
+      ),
     );
+  }
+  void _pageChanged(int index) {
+    print('_pageChanged');
+    setState(() {
+      if (_tabIndex != index) _tabIndex = index;
+    });
   }
 }

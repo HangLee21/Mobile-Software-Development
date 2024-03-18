@@ -27,8 +27,17 @@ import 'dart:developer' as developer;
 //   }
 // }
 
-Future<http.Response> requestGet(pathname,headers) async{
-  var res = await http.get(Uri.parse(BASEURL+pathname), headers: headers);
+Future<http.Response> requestGet(pathname,headers,{query}) async{
+  query ??= {};
+  String url = 'http://'+BASEURL+pathname;
+  if(query != {}){
+    url += '?';
+    query.forEach((key,value){
+      url += '$key=$value&';
+    });
+  }
+
+  var res = await http.get(Uri.parse(url), headers: headers, );
   return res;
 }
 

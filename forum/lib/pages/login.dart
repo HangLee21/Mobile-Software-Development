@@ -71,7 +71,8 @@ class _LoginState extends State<Login>{
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const CircleAvatar(
-              foregroundImage: AssetImage('assets/images/1.jpg'),
+              // foregroundImage: AssetImage('assets/images/1.jpg'),
+              backgroundImage: NetworkImage('https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar.png'),
               radius: 40,
             ),
             const SizedBox(height: 20),
@@ -108,26 +109,33 @@ class _LoginState extends State<Login>{
             ElevatedButton(
                 onPressed: (){
                   //TODO 登录
-                  requestPost(
-                    '/user/log_in',
-                    {
-                      'username': username,
-                      'password': password,
-                    },
-                    {}
-                  ).then((http.Response res){
-                    if(res.statusCode == 200){
-                      Map body = json.decode(res.body) as Map;
-                      sharedPreferences?.setString('token', body['token']);
-                      sharedPreferences?.setString('userName', body['content']['userName']);
-                      sharedPreferences?.setString('userId', body['content']['userId']);
-                      sharedPreferences?.setString('userAvatar', body['content']['userAvatar']);
-                      sharedPreferences?.setString('userEmail', body['content']['userEmail']);
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => const NavigationExample()));
-                    }else{
-                      throw Exception("登录失败");
-                    }
-                  });
+                  // requestPost(
+                  //   '/api/user/log_in',
+                  //   {
+                  //     'username': username,
+                  //     'password': password,
+                  //   },
+                  //   {}
+                  // ).then((http.Response res){
+                  //   if(res.statusCode == 200){
+                  //     Map body = json.decode(res.body) as Map;
+                  //     sharedPreferences?.setString('token', body['token']);
+                  //     sharedPreferences?.setString('userName', body['content']['userName']);
+                  //     sharedPreferences?.setString('userId', body['content']['userId']);
+                  //     sharedPreferences?.setString('userAvatar', body['content']['userAvatar']);
+                  //     sharedPreferences?.setString('userEmail', body['content']['userEmail']);
+                  //     Navigator.of(context).push(MaterialPageRoute(builder: (context) => const NavigationExample()));
+                  //   }else{
+                  //
+                  //     // throw Exception("登录失败");
+                  //   }
+                  // });
+                  sharedPreferences?.setString('token', 'token');
+                  sharedPreferences?.setString('userName', 'userName');
+                  sharedPreferences?.setString('userId', 'userId');
+                  sharedPreferences?.setString('userAvatar', 'userAvatar');
+                  sharedPreferences?.setString('userEmail', 'userEmail');
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const NavigationExample()));
                 },
                 style: ButtonStyle(
                     minimumSize: MaterialStateProperty.all(Size(250, 50))
