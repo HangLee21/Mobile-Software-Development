@@ -41,7 +41,28 @@ Future<http.Response> requestGet(pathname,headers,{query}) async{
   return res;
 }
 
-Future<http.Response> requestPost( pathname,Map<String, String> body, Map<String, String> headers) async{
-  var res = await http.post(Uri.parse(BASEURL+pathname),body: json.encode(body), headers: headers);
+Future<http.Response> requestPost( pathname,Map body, Map<String, String> headers,{query}) async{
+  query ??= {};
+  String url = 'http://'+BASEURL+pathname;
+  if(query != {}){
+    url += '?';
+    query.forEach((key,value){
+      url += '$key=$value&';
+    });
+  }
+  var res = await http.post(Uri.parse(url),body: json.encode(body), headers: headers);
+  return res;
+}
+
+Future<http.Response> requestDelete( pathname,Map body, Map<String, String> headers,{query}) async{
+  query ??= {};
+  String url = 'http://'+BASEURL+pathname;
+  if(query != {}){
+    url += '?';
+    query.forEach((key,value){
+      url += '$key=$value&';
+    });
+  }
+  var res = await http.delete(Uri.parse(url),body: json.encode(body), headers: headers);
   return res;
 }

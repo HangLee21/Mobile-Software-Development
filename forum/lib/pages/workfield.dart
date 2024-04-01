@@ -1,0 +1,424 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:forum/pages/navigation.dart';
+import 'package:forum/pages/postpage.dart';
+import 'package:forum/url/user.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:better_player/better_player.dart';
+
+class WorkField extends StatefulWidget{
+  final String title;
+  final String content;
+  final List materials;
+  WorkField(this.title, this.content, this.materials,{super.key});
+
+  @override
+  _WorkFieldState createState() => _WorkFieldState();
+}
+
+class _WorkFieldState extends State<WorkField>{
+  String title = '';
+  String content = '';
+  int materialCount = 5;
+  String postId = '';
+  List materials = [];
+  SharedPreferences? sharedPreferences;
+  @override
+  void initState(){
+    super.initState();
+    title = widget.title;
+    content = widget.content;
+    materials = widget.materials;
+    materialCount = materials.length + 1;
+    _initLocalStorage();
+    _initPostId();
+  }
+
+  void _initLocalStorage()async{
+    sharedPreferences = await SharedPreferences.getInstance();
+  }
+
+  void _initPostId() async{
+    if(postId == ''){
+
+    }
+  }
+  void _addMaterial() async{
+    FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.media);
+    EasyLoading.show(status: '上传中...');
+    if (result != null) {
+      print('yes');
+      File file = File(result.files.single.path!);
+      requestPost(
+          '/api/cos/upload_post_material',
+          {
+            'file': file
+          },
+          {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bear ${sharedPreferences?.getString('token')}'
+          },
+          query: {
+            'userId': sharedPreferences?.getString('userId'),
+            'postId': postId
+          }
+      ).then((http.Response res) {
+        if(res.statusCode == 200){
+          sharedPreferences?.setString('token', json.decode(res.body)['token']);
+          String url = json.decode(res.body)['content'];
+          setState(() {
+            materials = [...materials, url];
+            materialCount = materials.length + 1;
+          });
+        }
+      });
+    }
+    EasyLoading.dismiss();
+  }
+
+  void _deleteImage(int index) async{
+    //TODO delete
+    String url = materials[index];
+    List<String> parts = url.split('/');
+    String filename = parts.last;
+    requestDelete(
+      '/api/cos/delete_post_material',
+      {
+
+      },
+      {
+        'Authorization':'Bear ${sharedPreferences?.getString('token')}'
+      },
+      query: {
+        'userId':sharedPreferences?.getString('userId'),
+        'postId': postId,
+        'filename': filename
+      }
+    ).then((http.Response res){
+      if(res.statusCode == 200){
+        sharedPreferences?.setString('token', json.decode(res.body)['token']);
+        setState(() {
+          materials.remove(index);
+          materialCount = materials.length + 1;
+        });
+      }
+    });
+  }
+
+  void showMaterial(){
+    showDialog(context: context, builder: (context){
+      return BetterPlayer.file('D://obs//obs文件//展示视频素材//chat.mkv');
+    });
+  }
+
+  Widget _buildMaterialBox(int index) {
+    // 这里可以根据实际情况构建你的图片方块
+    if(index < materialCount - 1) {
+      return Stack(
+          children: [
+            GestureDetector(
+              onTap: showMaterial,
+              child: Container(
+                width: 80,
+                height: 80,
+                color: Colors.grey[300],
+                child: Center(
+                  child: ClipRRect(
+                      borderRadius: BorderRadius.circular(0),
+                      child:
+                      materials[index].split('.')[materials[index].split('.').length] == 'png' || materials[index].split('.')[materials[index].split('.').length] == 'jpg'?
+                      Image.network(
+                          materials[index],
+                          width: 80,
+                          height: 80
+                      )
+                          :Image.network(
+                          materials[index],
+                          width: 80,
+                          height: 80
+                      )
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: () {
+                  _deleteImage(index);
+                },
+                child: materials[index] == null
+                    ? Container()
+                    : Container(
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.grey[500],
+                  ),
+                  padding: const EdgeInsets.all(4),
+                  child: const Icon(
+                    Icons.close,
+                    color: Colors.white,
+                    size: 15,
+                  ),
+                ),
+              ),
+            )
+          ]
+        );
+    }else{
+      return GestureDetector(
+          onTap: _addMaterial,
+          child: Container(
+            width: 80,
+            height: 80,
+            child: const Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.zero,
+              ),
+              margin: EdgeInsets.all(0),
+              child: Icon(Icons.add),
+            ),
+          )
+      );
+    }
+  }
+
+  void sendPost(){
+    showDialog(context: context, builder: (context){
+      return AlertDialog(
+        title: Text('发布'),
+        content: Text('您确定要发布吗'),
+        actions: [
+          TextButton(
+              onPressed: (){
+                Navigator.pop(context, "取消");
+              },
+              child: Text('取消')
+          ),
+          TextButton(
+              onPressed: (){
+                send();
+              },
+              child: Text('确定')
+          ),
+        ],
+      );
+    });
+  }
+
+  void send()async{
+    EasyLoading.show(status: '正在发布...');
+    if(title != '' && content != ''){
+      requestPost(
+          '/api/cos/upload_work',
+          {
+            'title': title,
+            'userId': sharedPreferences?.getString('userId'),
+            'content': content,
+            'postId': postId
+          },
+          {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bear ${sharedPreferences?.getString('token')}'
+          }
+        ).then((http.Response res){
+          if(res.statusCode == 200){
+            Navigator.of(context).pop();
+            EasyLoading.showSuccess('发布成功');
+            Future.delayed(Duration(seconds: 1),(){
+
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => PostPage(postId)));
+            });
+          }else{
+            Navigator.of(context).pop();
+            EasyLoading.showError('发布失败');
+          }
+        }
+      );
+    }
+    else{
+      Navigator.of(context).pop();
+      EasyLoading.showError('请输入标题和内容');
+    }
+  }
+  
+  void deletePost(){
+    showDialog(context: context, builder: (context){
+      return AlertDialog(
+        title: Text('删除'),
+        content: Text('您确定要删除吗'),
+        actions: [
+          TextButton(
+              onPressed: (){
+                Navigator.pop(context, "取消");
+              },
+              child: Text('取消')
+          ),
+          TextButton(
+              onPressed: (){
+                delete();
+              },
+              child: Text('确定')
+          ),
+        ],
+      );
+    });
+  }
+  
+  void delete()async{
+    EasyLoading.show(status: '删除中');
+    requestDelete(
+        '/api/cos/delete_draft',
+        {
+          'userId':sharedPreferences?.getString('userId'),
+          'postId': postId
+        },
+        {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bear ${sharedPreferences?.getString('token')}'
+        }
+    ).then((http.Response res){
+        if(res.statusCode == 200){
+          EasyLoading.showSuccess('删除成功');
+          Navigator.of(context).pop();
+          Future.delayed(Duration(seconds: 1),(){
+
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => NavigationExample()));
+          });
+        }else{
+          EasyLoading.showError('删除失败');
+          Navigator.of(context).pop();
+        }
+    });
+  }
+
+  void save()async{
+    EasyLoading.show(status: '保存中...');
+    requestPost(
+        '/api/cos/upload_draft',
+        {
+          'title': title,
+          'userId': sharedPreferences?.getString('userId'),
+          'content': content,
+          'postId': postId
+        },
+        {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bear ${sharedPreferences?.getString('token')}'
+        }
+    ).then((http.Response res){
+        if(res.statusCode == 200){
+          EasyLoading.showSuccess('保存成功');
+        }else{
+          EasyLoading.showSuccess('保存失败');
+        }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('创作'),
+        actions: [
+          IconButton(
+            icon:Icon(Icons.save_as_outlined),
+            onPressed: () {
+              save();
+            },
+            tooltip: '保存',
+          ),
+          IconButton(
+            icon:Icon(Icons.delete_outline),
+            onPressed: () {
+              deletePost();
+            },
+            tooltip: '删除',
+          ),
+          IconButton(
+            icon:Icon(Icons.send),
+            onPressed: () {
+              sendPost();
+            },
+            tooltip: '发送',
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+              padding: const EdgeInsets.fromLTRB(10.0,0.0,10.0,0),
+              child: Wrap(
+                spacing: 8.0, // 水平方向子组件之间的间距
+                runSpacing: 8.0, // 垂直方向子组件之间的间距
+                alignment: WrapAlignment.start,
+                children: List.generate(
+                  materialCount,
+                  (index) => _buildMaterialBox(index),
+                ),
+              ),
+          ),
+
+          TextField(
+            onChanged: (str){
+                title = str;
+            },
+            controller: TextEditingController(text: title),
+            // cursorColor:Color(0xFF464EB5),
+            maxLines: null,
+            maxLength: 50,
+            decoration: const InputDecoration(
+              counterText: '',
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.only(
+                  left: 16.0, right: 16.0, top: 10.0, bottom:10.0),
+              hintText: "标题（建议不超过15字）",
+              hintStyle: TextStyle(
+                  color: Color(0xFFADB3BA),
+                  fontSize:15
+              ),
+            ),
+            style: const TextStyle(
+                color: Color(0xFF03073C),
+                fontSize:15
+            ),
+          ),
+          const Divider(height: 10,),
+          Expanded(child: TextField(
+            onChanged: (str){
+              content = str;
+            },
+            controller: TextEditingController(text: content),
+            // cursorColor:Color(0xFF464EB5),
+            maxLines: null,
+            // maxLength: 200,
+            decoration: const InputDecoration(
+              counterText: '',
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.only(
+                  left: 16.0, right: 16.0, top: 10.0, bottom:10.0),
+              hintText: "分享你的动态",
+              hintStyle: TextStyle(
+                  color: Color(0xFFADB3BA),
+                  fontSize:15
+              ),
+            ),
+            style: const TextStyle(
+                color: Color(0xFF03073C),
+                fontSize:15
+            ),
+          ),)
+        ],
+      ),
+    );
+  }
+
+}

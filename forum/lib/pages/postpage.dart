@@ -8,6 +8,7 @@ import 'package:forum/components/commentcard.dart';
 import 'package:forum/url/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 
 class PostPage extends StatefulWidget{
   final String postId;
@@ -54,6 +55,7 @@ class _PostState extends State<PostPage>{
   SharedPreferences? sharedPreferences;
   @override
   void initState(){
+
     myFocusNode.addListener(() {
       if(myFocusNode.hasFocus){
         setState(() {
@@ -106,7 +108,7 @@ class _PostState extends State<PostPage>{
                       Map commentItem = {};
                       commentItem['content'] = comment['content'];
                       commentItem['time'] = comment['time'];
-                      // commentItem['urls'] = comment['urls'];
+                      commentItem['urls'] = comment['urls'].cast<String>();;
                       commentItem['commentId'] = comment['commentId'];
                       commentItem['likes'] = comment['likes'];
                       print(comment['likes']);
@@ -277,7 +279,7 @@ class _PostState extends State<PostPage>{
                             //TODO 评论区
                             const Divider(height: 20,),
                             for(var i in comments)
-                              CommentCard(i['avatar'], i['username'], i['content'], i['likes'], i['time'], i['commentId']),
+                              CommentCard(i['avatar'], i['username'], i['content'], i['likes'], i['time'], i['commentId'],i['liked'],i['urls']),
                             const SizedBox(height: 20,),
                             const Text(
                               '已到达底部',
@@ -363,50 +365,69 @@ class _PostState extends State<PostPage>{
                   ),
 
                   AnimatedContainer(
-                      width: writing ? 0 : 45,
+                      width: writing ? 0 : 35,
                       // height: writing ? 0 : 50,
                       duration: Duration(milliseconds: 300),
-                      child: Badge(
-                        offset: Offset(-10,0),
-                        isLabelVisible: !writing,
-                        label: Text(likes<=99?likes.toString():'99+'),
-                        // backgroundColor: Colors.transparent,
-                        child: AnimatedSwitcher(
+                      child: AnimatedSwitcher(
                           duration: Duration(milliseconds: 200),
                           child: IconButton(
                             onPressed: (){
                               //TODO
                               setState(() {
                                 liked = !liked;
+                                if(liked == true){
+                                  likes++;
+                                }else{
+                                  likes--;
+                                }
                               });
                             },
                             icon: Icon(liked?Icons.favorite:Icons.favorite_border),key: ValueKey<bool>(liked),),
                         )
-                      )
-
                   ),
                   AnimatedContainer(
-                      width: writing ? 0 : 45,
+                    duration: Duration(milliseconds: 300),
+                    width: writing ? 0 : 20,
+                    child: Text(
+                        likes > 0? likes > 99 ? '99+' : likes.toString(): '',
+                        style: TextStyle(
+                          fontSize: writing?0:15,
+                          color: Colors.grey
+                        ),
+                    )
+                  ),
+                  AnimatedContainer(
+                      width: writing ? 0 : 35,
                       // height: writing ? 0 : 50,
                       duration: Duration(milliseconds: 150),
-                      child: Badge(
-                        offset: Offset(-10,0),
-                        isLabelVisible: !writing,
-                        label: Text(stars<=99?stars.toString():'99+'),
-                        // backgroundColor: Colors.red,
-                        child: AnimatedSwitcher(
+                      child: AnimatedSwitcher(
                           duration: Duration(milliseconds: 200),
                           child: IconButton(
                             onPressed: (){
                               //TODO
                               setState(() {
                                 stared = !stared;
+                                if(stared == true){
+                                  stars++;
+                                }else{
+                                  stars--;
+                                }
                               });
                             },
                             icon: Icon(stared?Icons.star:Icons.star_border),key: ValueKey<bool>(stared),),
                         )
+                  ),
+                  AnimatedContainer(
+                      duration: Duration(milliseconds: 300),
+                      width: writing ? 0 : 20,
+                      child: Text(
+                        stars > 0? stars > 99 ? '99+' : stars.toString(): '',
+                        style: TextStyle(
+                            fontSize: writing?0:15,
+                            color: Colors.grey
+                        ),
                       )
-                  )
+                  ),
                 ],
               ),
             ),

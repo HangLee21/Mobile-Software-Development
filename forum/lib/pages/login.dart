@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:forum/pages/signup.dart';
 import 'package:http/http.dart' as http;
@@ -51,6 +52,9 @@ class _LoginState extends State<Login>{
   String username = '';
   String password = '';
 
+  final FocusNode _accountNode = FocusNode();
+  final FocusNode _passwordNode = FocusNode();
+
   SharedPreferences? sharedPreferences;
   @override
   void initState(){
@@ -76,66 +80,77 @@ class _LoginState extends State<Login>{
               radius: 40,
             ),
             const SizedBox(height: 20),
-            TextField(
-              textDirection: TextDirection.ltr,
-              obscureText: false,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: '用户名',
-                hintText: '输入8-16位数字或字母'
+            Listener(
+              onPointerDown: (e)=> FocusScope.of(context).requestFocus(_accountNode),
+              child: TextField(
+                focusNode: _accountNode,
+                textDirection: TextDirection.ltr,
+                obscureText: false,
+                decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: '用户名',
+                    hintText: '输入8-16位数字或字母'
+                ),
+                onChanged: (str){
+                  setState(() {
+                    username = str;
+                  });
+                },
               ),
-              onChanged: (str){
-                setState(() {
-                  username = str;
-                });
-              },
-            ),
+            )
+            ,
             const SizedBox(height: 20),
-            TextField(
-              textDirection: TextDirection.ltr,
-              obscureText: true,
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: '密码',
-                hintText: '输入8-16位数字或字母'
+            Listener(
+              onPointerDown: (e)=> FocusScope.of(context).requestFocus(_passwordNode),
+              child: TextField(
+                focusNode: _passwordNode,
+                textDirection: TextDirection.ltr,
+                obscureText: true,
+                decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: '密码',
+                    hintText: '输入8-16位数字或字母'
+                ),
+                onChanged: (str){
+                  setState(() {
+                    password = str;
+                  });
+                },
               ),
-              onChanged: (str){
-                setState(() {
-                  password = str;
-                });
-              },
             ),
+
             const SizedBox(height: 20),
             ElevatedButton(
                 onPressed: (){
                   //TODO 登录
-                  // requestPost(
-                  //   '/api/user/log_in',
-                  //   {
-                  //     'username': username,
-                  //     'password': password,
-                  //   },
-                  //   {}
-                  // ).then((http.Response res){
-                  //   if(res.statusCode == 200){
-                  //     Map body = json.decode(res.body) as Map;
-                  //     sharedPreferences?.setString('token', body['token']);
-                  //     sharedPreferences?.setString('userName', body['content']['userName']);
-                  //     sharedPreferences?.setString('userId', body['content']['userId']);
-                  //     sharedPreferences?.setString('userAvatar', body['content']['userAvatar']);
-                  //     sharedPreferences?.setString('userEmail', body['content']['userEmail']);
-                  //     Navigator.of(context).push(MaterialPageRoute(builder: (context) => const NavigationExample()));
-                  //   }else{
-                  //
-                  //     // throw Exception("登录失败");
-                  //   }
-                  // });
-                  sharedPreferences?.setString('token', 'token');
-                  sharedPreferences?.setString('userName', 'userName');
-                  sharedPreferences?.setString('userId', 'userId');
-                  sharedPreferences?.setString('userAvatar', 'userAvatar');
-                  sharedPreferences?.setString('userEmail', 'userEmail');
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => const NavigationExample()));
+                  requestPost(
+                    '/api/user/log_in',
+                    {
+                      'userId': username,
+                      'userPassword': password,
+                    },
+                    {}
+                  ).then((http.Response res){
+                    if(res.statusCode == 200){
+                      Map body = json.decode(res.body) as Map;
+                      sharedPreferences?.setString('userName', body['content']['userName']);
+                      sharedPreferences?.setString('userId', body['content']['userId']);
+                      sharedPreferences?.setString('userAvatar', body['content']['userAvatar']);
+                      sharedPreferences?.setString('userEmail', body['content']['userEmail']);
+                      sharedPreferences?.setString('token', body['token']).then((value){
+                        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const NavigationExample()), (route) => route == null);
+                      });
+                    }else{
+
+                      throw Exception("登录失败");
+                    }
+                  });
+                  // sharedPreferences?.setString('token', 'token');
+                  // sharedPreferences?.setString('userName', 'userName');
+                  // sharedPreferences?.setString('userId', 'userId');
+                  // sharedPreferences?.setString('userAvatar', 'userAvatar');
+                  // sharedPreferences?.setString('userEmail', 'userEmail');
+                  // Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const NavigationExample()), (route) => route == null);
                 },
                 style: ButtonStyle(
                     minimumSize: MaterialStateProperty.all(Size(250, 50))

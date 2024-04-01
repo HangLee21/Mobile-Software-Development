@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:forum/components/content_card.dart';
 import 'package:forum/constants.dart';
+import 'package:forum/pages/workfield.dart';
 import 'package:forum/url/user.dart';
 import 'package:http/http.dart' as http;
 import '../components/search_bar.dart';
@@ -17,32 +18,20 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
-  // TODO get cards from backend
   List<CarouselCard> cards = [
-    CarouselCard(studyRoute: '', title: '通缉犯', content: '嫌犯越狱出逃', asset: AssetImage(
-      'assets/images/1.jpg',
-    ),card_height: 250,),
-    CarouselCard(studyRoute: '', title: 'Test2', content: 'Content2', asset: AssetImage(
-      'assets/images/jadeite.png',
-    ),card_height: 250,),
-    CarouselCard(studyRoute: '', title: 'Test3', content: 'Content3', card_height: 250,),
   ];
 
   List<ContentCard> content_cards = [
-    ContentCard(title: 'Test1', content: 'Content1', postId: '',),
-    ContentCard(title: 'Test2', content: 'Content2', postId: '',),
-    ContentCard(title: 'Test3', content: 'Content3', postId: '',),
-    ContentCard(title: 'Test4', content: 'The following example builds on the previous one. In addition to providing a minimum dimension for the child Column, an IntrinsicHeight widget is used to force the column to be exactly as big as its contents. This constraint combines with the ConstrainedBox constraints discussed previously to ensure that the column becomes either as big as viewport, or as big as the contents, whichever is biggest.Both constraints must be used to get the desired effect. If only the IntrinsicHeight was specified, then the column would not grow to fit the entire viewport when its children were smaller than the whole screen. If only the size of the viewport was used, then the Column would overflow if the children were bigger than the viewport.The widget that is to grow to fit the remaining space so provided is wrapped in an Expanded widget.This technique is quite expensive, as it more or less requires that the contents of the viewport be laid out twice (once to find their intrinsic dimensions, and once to actually lay them out). The number of widgets within the column should therefore be kept small. Alternatively, subsets of the children that have known dimensions can be wrapped in a SizedBox that has tight vertical constraints, so that the intrinsic sizing algorithm can short-circuit the computation when it reaches those parts of the subtree.', media_urls: [
-      'assets/images/jadeite.png',
-      'assets/images/1.jpg'
-    ], postId: '',),
   ];
   SharedPreferences? sharedPreferences;
   @override
   void initState(){
     super.initState();
     initSharedPreference();
-    getRecommendWorks();
+    Future.delayed(Duration(milliseconds: 10),(){
+      getRecommendWorks();
+    });
+    // getRecommendWorks();
   }
 
   void initSharedPreference() async{
@@ -55,12 +44,14 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     //   'Authorization': 'Bear: fdsfd}',
     // }, );
     // print(r.statusCode.toString());
-    requestGet('/api/cos/community/recommend_works_with_urls', {
-      'Authorization': 'Bear: ${sharedPreferences?.getString('token')}',
+    requestGet('/api/cos/community/recommend_works', {
+      'Authorization': 'Bearer ${sharedPreferences?.getString('token') ?? '43432'}',
     },query: {
       'maxNum': '10'
     }).then((http.Response res) {
-      print('123');
+      print('1234');
+      print(sharedPreferences?.getString('token'));
+      print(res.statusCode);
       if(res.statusCode == 200){
         List posts = json.decode(res.body)['posts'];
         content_cards.clear();
@@ -113,6 +104,28 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
               )
           ),
 
+      ),
+      floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
+        ///点击响应事
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => WorkField('','',const [])));
+        },
+        ///长按提示
+        tooltip: "创作",
+        ///设置悬浮按钮的背景
+        heroTag: 'other',
+        // backgroundColor: Colors.lightBlueAccent,
+        // ///获取焦点时显示的颜色
+        // focusColor: Colors.green,
+        // ///鼠标悬浮在按钮上时显示的颜色
+        // hoverColor: Colors.yellow,
+        // ///水波纹颜色
+        // splashColor: Colors.deepPurple,
+        // ///配制阴影高度 未点击时
+        // elevation: 5.0,
+        // ///配制阴影高度 点击时
+        // highlightElevation: 20.0,
       ),
     );
   }

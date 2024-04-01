@@ -3,9 +3,11 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:forum/components/card_list.dart';
 import 'package:forum/components/content_card.dart';
 import 'package:forum/constants.dart';
+import 'package:forum/pages/login.dart';
 import 'package:forum/url/user.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,8 +23,9 @@ class Settings extends StatefulWidget {
 class SettingsState extends State<Settings>{
   String username = '';
   String userid= '';
-  String avatar = '';
+  String avatar = 'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png';
   String email = '';
+  int imageNumber = 0;
   SharedPreferences? sharedPreferences;
   @override
   void initState(){
@@ -33,7 +36,7 @@ class SettingsState extends State<Settings>{
     sharedPreferences = await SharedPreferences.getInstance();
     username = sharedPreferences?.getString("userName")??"";
     userid = sharedPreferences?.getString("userId")??"";
-    avatar = sharedPreferences?.getString("userAvatar")??"";
+    avatar = sharedPreferences?.getString("userAvatar")??"https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png";
     email = sharedPreferences?.getString("userEmail")??"";
     setState(() {});
   }
@@ -41,19 +44,42 @@ class SettingsState extends State<Settings>{
   void _changeAvatar() async{
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
     if (result != null) {
+      print('yes');
       File file = File(result.files.single.path!);
-      // requestPost(
-      //     Uri.parse('$BASEURL/cos/upload_avatar'),
-      //     {
-      //       'file':
-      //     },
-      //     {
-      //       'Content-Type': 'application/form-data',
-      //       'Authorization': 'Bearer ${sharedPreferences?.getString('token')??'43432'}'
-      //     }
-      // );
+      var uri = Uri.parse('http://$BASEURL/api/cos/upload_avatar');
+      var request = http.MultipartRequest('POST', uri);
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          file.path,
+        ),
+      );
+      request.headers.addAll({
+        'Content-Type': 'multipart/form-data',
+        'Authorization': 'Bearer ${sharedPreferences?.getString('token') ?? '43432'}',
+      });
+      request.fields.addAll({
+        'userId': sharedPreferences?.getString('userId') ?? '',
+      });
+
+      var response = await request.send();
+      if (response.statusCode == 200) {
+        var responseBody = await response.stream.bytesToString();
+        sharedPreferences?.setString('token', json.decode(responseBody)['token']);
+        print(json.decode(responseBody)['content'][0]);
+        sharedPreferences?.setString('userAvatar', json.decode(responseBody)['content'][0]);
+        avatar = json.decode(responseBody)['content'][0];
+        imageNumber++;
+        EasyLoading.showSuccess('修改成功');
+        setState(() {
+        });
+      } else {
+        print('Upload failed with status ${response.statusCode}');
+      }
     }
   }
+
+
 
   @override
   Widget build(BuildContext context){
@@ -80,7 +106,7 @@ class SettingsState extends State<Settings>{
                         child: ClipRRect(
                             borderRadius: BorderRadius.circular(8),
                             child: Image.network(
-                                sharedPreferences?.getString('userAvatar')??'',
+                                '$avatar?$imageNumber',
                                 width: 50,
                                 height: 50
                             )
@@ -105,9 +131,9 @@ class SettingsState extends State<Settings>{
                     prefixText: '昵称'
                 ),
                 onSubmitted: (String value){
-                  requestPost('/account/change_username',
+                  requestPost('/api/account/change_username',
                       {
-                        'userid': userid,
+                        'userId': userid,
                         'content': value,
                       },
                       {
@@ -120,9 +146,9 @@ class SettingsState extends State<Settings>{
                         username = value;
                         sharedPreferences?.setString('userName', value);
                       });
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('修改成功！'),backgroundColor: Colors.green,));
+                      EasyLoading.showSuccess('修改成功');
                     }else{
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('修改失败！'),backgroundColor: Colors.red,));
+                      EasyLoading.showError('修改失败');
                     }
                   });
                 },
@@ -144,9 +170,9 @@ class SettingsState extends State<Settings>{
                     prefixText: '账号'
                   ),
                   onSubmitted: (String value){
-                    requestPost('/account/change_userId',
+                    requestPost('/api/account/change_userId',
                         {
-                          'userid': userid,
+                          'userId': userid,
                           'content': value,
                         },
                         {
@@ -159,9 +185,9 @@ class SettingsState extends State<Settings>{
                           userid = value;
                           sharedPreferences?.setString('userId', value);
                         });
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('修改成功！'),backgroundColor: Colors.green,));
+                        EasyLoading.showSuccess('修改成功');
                       }else{
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('修改失败！'),backgroundColor: Colors.red,));
+                        EasyLoading.showError('修改失败');
                       }
                     });
                   },
@@ -182,9 +208,9 @@ class SettingsState extends State<Settings>{
                     prefixText: '邮箱'
                   ),
                   onSubmitted: (String value){
-                    requestPost('/account/change_email',
+                    requestPost('/api/account/change_email',
                         {
-                          'userid': userid,
+                          'userId': userid,
                           'content': value,
                         },
                         {
@@ -197,9 +223,9 @@ class SettingsState extends State<Settings>{
                           email = value;
                           sharedPreferences?.setString('userEmail', value);
                         });
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('修改成功！'),backgroundColor: Colors.green,));
+                        EasyLoading.showSuccess('修改成功');
                       }else{
-                        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('修改失败！'),backgroundColor: Colors.red,));
+                        EasyLoading.showError('修改失败');
                       }
                     });
                   },
@@ -214,12 +240,16 @@ class SettingsState extends State<Settings>{
                 },
                 child: Text('修改密码')
               )
-            )
+            ),
+            const SizedBox(height: 20,),
+            ElevatedButton(onPressed: (){
+              sharedPreferences?.clear();
+              Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => LoginLayout()), (route) => false);
+            }, child: Text('退出登录'))
           ],
 
         ),
       )
-
     );
   }
 }

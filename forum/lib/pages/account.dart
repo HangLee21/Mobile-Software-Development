@@ -16,7 +16,9 @@ class _AccountState extends State<AccountPage>{
   @override
   void initState(){
     super.initState();
+
     init();
+    avatar = sharedPreferences?.getString('userAvatar')??'';
   }
 
   void init() async {
@@ -39,7 +41,7 @@ class _AccountState extends State<AccountPage>{
                   children: [
                     const SizedBox(width: 20,),
                     CircleAvatar(
-                      foregroundImage: NetworkImage(sharedPreferences?.getString('userAvatar')??''),
+                      foregroundImage: NetworkImage(sharedPreferences?.getString('userAvatar')??'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png'),
                       radius: 50,
                     ),
                     const SizedBox(width: 20,),
