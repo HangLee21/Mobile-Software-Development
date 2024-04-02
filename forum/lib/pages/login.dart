@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import '../theme/theme_data.dart';
 import '../main.dart';
 import '../url/user.dart';
+import '../url/websocket_service.dart';
 import 'navigation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -54,7 +55,7 @@ class _LoginState extends State<Login>{
 
   final FocusNode _accountNode = FocusNode();
   final FocusNode _passwordNode = FocusNode();
-
+  final _websocketService = WebSocketService();
   SharedPreferences? sharedPreferences;
   @override
   void initState(){
@@ -138,10 +139,10 @@ class _LoginState extends State<Login>{
                       sharedPreferences?.setString('userAvatar', body['content']['userAvatar']);
                       sharedPreferences?.setString('userEmail', body['content']['userEmail']);
                       sharedPreferences?.setString('token', body['token']).then((value){
+                        _websocketService.connect(body['content']['userId']);
                         Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const NavigationExample()), (route) => route == null);
                       });
                     }else{
-
                       throw Exception("登录失败");
                     }
                   });

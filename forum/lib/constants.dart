@@ -42,4 +42,6 @@ const double firstHeaderDesktopTopPadding = 5.0;
 // A transparent image used to avoid loading images when they are not needed.
 final Uint8List kTransparentImage = transparent_image.kTransparentImage;
 
-const String BASEURL = '101.200.42.81:8080';
+const String BASEURL = '10.0.2.2:8080';
+
+const String WEBSOCKET_URL = 'ws://10.0.2.2:8080/websocket';
