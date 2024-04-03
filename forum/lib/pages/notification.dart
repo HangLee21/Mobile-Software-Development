@@ -51,6 +51,7 @@ class _NotificationState extends State<NotificationPage>{
             friendname: info.friendId,
             content: info.content,
             url: "",
+            friendId: info.friendId,
           ),
         );
       }
@@ -71,6 +72,7 @@ class _NotificationState extends State<NotificationPage>{
             friendname: message1.senderId,
             content: message1.content,
             url: "",
+            friendId: message1.senderId,
           ),
         );
       });

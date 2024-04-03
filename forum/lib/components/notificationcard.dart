@@ -8,8 +8,9 @@ class NotificationCard extends StatelessWidget{
   final String friendname;
   final String? content;
   final String? avatarurl;
+  final String friendId;
   final String url;
-  NotificationCard({super.key, required this.friendname, this.content, required this.url, this.avatarurl});
+  NotificationCard({super.key, required this.friendname, this.content, required this.url, this.avatarurl, required this.friendId});
   @override
   Widget build(BuildContext context){
     return Card(
@@ -17,7 +18,7 @@ class NotificationCard extends StatelessWidget{
         height: 80,
         child: InkWell(
           onTap: (){
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChatPage(userId: '2021011840')));
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChatPage(userId: friendId)));
           },
           onLongPress: ()=>_showPopupMenu(context),
           child: Row(
