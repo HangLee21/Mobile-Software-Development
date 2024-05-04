@@ -25,6 +25,19 @@ class NotificationStorage {
     await _prefs.setString('notifications', jsonEncode(serializedNotifications));
   }
 
+  Future<void> deleteNotification(String friendId) async {
+    SharedPreferences _prefs = await SharedPreferences.getInstance();
+    Map<String, NotificationInfo> serializedNotifications = await loadNotifications();
+    serializedNotifications.remove(friendId);
+    await _prefs.setString('notifications', jsonEncode(serializedNotifications));
+  }
+
+  Future<NotificationInfo> findNotification(String friendId) async {
+    SharedPreferences _prefs = await SharedPreferences.getInstance();
+    Map<String, NotificationInfo> serializedNotifications = await loadNotifications();
+    return serializedNotifications[friendId]!;
+  }
+
   Future<Map<String, NotificationInfo>> loadNotifications() async {
     SharedPreferences _prefs = await SharedPreferences.getInstance();
     String? notificationsJson = _prefs.getString('notifications');
