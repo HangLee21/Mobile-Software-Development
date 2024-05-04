@@ -42,9 +42,12 @@ class WebSocketService extends ChangeNotifier{
     });
   }
 
-  void sendMessage(String message) {
+  Future<void> sendMessage(String message) async {
     if (_channel != null) {
       _channel!.sink.add(message);
+    }
+    else{
+      throw "Connection is not established";
     }
   }
 

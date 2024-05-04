@@ -15,7 +15,7 @@ class NotificationPage extends StatefulWidget{
 
 class _NotificationState extends State<NotificationPage>{
   final _websocketService = WebSocketService();
-  Map<String, Badge> cards = {};
+  Map<String, NotificationCard> cards = {};
   Map<String, NotificationInfo> _notificationInfos = {};
   List<Message> _messages = <Message>[];
   @override
@@ -41,18 +41,17 @@ class _NotificationState extends State<NotificationPage>{
     return NotificationInfoMap.values.toList();
   }
 
-  void init() async{
+  void _initNotifications(){
     NotificationStorage().loadNotifications().then((value) => setState(() {
       _notificationInfos = value;
       for(var info in _notificationInfos.values){
-        cards[info.friendId] = Badge(
-          label: Text('${info.info_num}'),
-          child: NotificationCard(
-            friendname: info.friendId,
-            content: info.content,
-            url: "",
-            friendId: info.friendId,
-          ),
+        cards[info.friendId] = NotificationCard(
+          friendname: info.friendId,
+          content: info.content,
+          url: "",
+          friendId: info.friendId,
+          info_num: info.info_num,
+          onPressed: _initNotifications,
         );
       }
     }));
@@ -60,37 +59,58 @@ class _NotificationState extends State<NotificationPage>{
       setState(() {
         Message message1 = Message.fromString(message);
         _messages.add(message1);
-        _notificationInfos[message1.senderId] = NotificationInfo(
-          friendId: message1.senderId,
-          time: message1.time,
-          content: message1.content,
-          info_num: 1,
-        );
-        cards[message1.senderId] = Badge(
-          label: Text('1'),
-          child: NotificationCard(
-            friendname: message1.senderId,
-            content: message1.content,
-            url: "",
+        String key = message1.senderId;
+        int info_num = 0;
+        // 检查是否存在键
+        if (_notificationInfos.containsKey(key)) {
+          // 如果存在，则获取现有的 NotificationInfo 对象
+          NotificationInfo? existingInfo = _notificationInfos[key];
+          info_num = existingInfo!.info_num + 1;
+          _notificationInfos[message1.senderId] = NotificationInfo(
             friendId: message1.senderId,
-          ),
+            time: message1.time,
+            content: message1.content,
+            info_num: info_num,
+          );
+        } else {
+          _notificationInfos[message1.senderId] = NotificationInfo(
+            friendId: message1.senderId,
+            time: message1.time,
+            content: message1.content,
+            info_num: 1,
+          );
+          info_num = 1;
+        }
+        cards[message1.senderId] = NotificationCard(
+          friendname: message1.senderId,
+          content: message1.content,
+          url: "",
+          friendId: message1.senderId,
+          info_num: info_num,
+          onPressed: _initNotifications,
         );
       });
     });
   }
 
+  void init() async{
+    _initNotifications();
+  }
+
   @override
   Widget build(BuildContext context) {
-    if(cards.isNotEmpty)
+
+    if(cards.values.isNotEmpty) {
       return ListView.builder(
           itemCount: cards.length,
           itemBuilder: (context, index){
             return cards.values.elementAt(index);
           }
       );
-    else
-      return Center(
+    } else {
+      return const Center(
         child: Text('No notifications'),
       );
+    }
   }
 }

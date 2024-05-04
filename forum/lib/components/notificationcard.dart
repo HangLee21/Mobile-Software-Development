@@ -2,15 +2,22 @@ import 'dart:math';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:forum/classes/notification_card.dart';
 import 'package:forum/pages/chatpage.dart';
+import 'package:forum/storage/notificationInfo_storage.dart';
 
+
+// TODO change content according to the chat page
 class NotificationCard extends StatelessWidget{
   final String friendname;
   final String? content;
   final String? avatarurl;
   final String friendId;
   final String url;
-  NotificationCard({super.key, required this.friendname, this.content, required this.url, this.avatarurl, required this.friendId});
+  final int info_num;
+  final VoidCallback onPressed;
+  NotificationCard({super.key, required this.friendname, this.content, required this.url, this.avatarurl, required this.friendId, required this.info_num, required this.onPressed});
+
   @override
   Widget build(BuildContext context){
     return Card(
@@ -18,7 +25,19 @@ class NotificationCard extends StatelessWidget{
         height: 80,
         child: InkWell(
           onTap: (){
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChatPage(userId: friendId)));
+            NotificationStorage().findNotification(friendId).then((notification) => {
+              if(notification != null){
+                NotificationStorage().saveNotification(NotificationInfo(
+                  friendId: friendId,
+                  content: notification.content,
+                  info_num: 0,
+                  time: notification.time
+                )).then((value) => {
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChatPage(userId: friendId))).then((value) => {
+                    onPressed()
+                  })
+                })
+              }});
           },
           onLongPress: ()=>_showPopupMenu(context),
           child: Row(
@@ -29,29 +48,50 @@ class NotificationCard extends StatelessWidget{
                 // backgroundImage: NetworkImage(url),
               ),
               const SizedBox(width: 20,),
-              Expanded(child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    maxLines: 1,
-                    friendname,
-                    style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold
+              Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        maxLines: 1,
+                        friendname,
+                        style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 10,),
+                      Text(
+                        content != null? content!: '',
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
+                      )
+                    ],
+                  )
+              ),
+              if(info_num != 0)
+                Container(
+                  padding: EdgeInsets.all(2),
+                  margin: EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: Colors.red,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  constraints: BoxConstraints(
+                    minWidth: 20,
+                    minHeight: 20,
+                  ),
+                  child: Text(
+                    '$info_num',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 15,
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  )
-                  ,
-                  const SizedBox(height: 10,),
-                  Text(
-                    content != null? content!: '',
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  )
-                ],
-              )),
-
+                    textAlign: TextAlign.center,
+                  ),
+                ),
             ],
           ),
         )
