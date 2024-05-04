@@ -51,7 +51,9 @@ class AccountPageCard extends StatelessWidget{
                   child: child,
                 );
               }
-            ));
+            )).then((context){
+              
+        });
     }
     return Card(
       child: Container(

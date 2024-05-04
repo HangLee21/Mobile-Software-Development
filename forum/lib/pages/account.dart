@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:forum/components/accountpagecard.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../classes/localStorage.dart';
 
 class AccountPage extends StatefulWidget {
   @override
@@ -17,16 +18,16 @@ class _AccountState extends State<AccountPage>{
   void initState(){
     super.initState();
 
-    init();
-    avatar = sharedPreferences?.getString('userAvatar')??'';
+    // init();
+    avatar = LocalStorage.getString('userAvatar')??'';
   }
 
-  void init() async {
-    sharedPreferences = await SharedPreferences.getInstance();
-    setState(() {});
-  }
-
-  SharedPreferences? sharedPreferences;
+  // void init() async {
+  //   sharedPreferences = await SharedPreferences.getInstance();
+  //   setState(() {});
+  // }
+  //
+  // SharedPreferences? sharedPreferences;
   @override
   Widget build(BuildContext context){
     final ThemeData theme = Theme.of(context);
@@ -41,7 +42,7 @@ class _AccountState extends State<AccountPage>{
                   children: [
                     const SizedBox(width: 20,),
                     CircleAvatar(
-                      foregroundImage: NetworkImage(sharedPreferences?.getString('userAvatar')??'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png'),
+                      foregroundImage: NetworkImage(LocalStorage.getString('userAvatar')??'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png'),
                       radius: 50,
                     ),
                     const SizedBox(width: 20,),
@@ -51,7 +52,12 @@ class _AccountState extends State<AccountPage>{
                         children: [
                           Row(
                               children: [
-                                Text(sharedPreferences?.getString('userName')??'',
+                                // Text(sharedPreferences?.getString('userName')??'',
+                                //     style: const TextStyle(
+                                //       fontSize: 30,
+                                //     )
+                                // ),
+                                Text(LocalStorage.getString('userName')??'',
                                     style: const TextStyle(
                                       fontSize: 30,
                                     )
@@ -61,7 +67,7 @@ class _AccountState extends State<AccountPage>{
                           const SizedBox(height: 20),
                           Row(
                               children: [
-                                Text('id: ${sharedPreferences?.getString('userId')??''}',
+                                Text('id: ${LocalStorage.getString('userId')??''}',
                                     style: const TextStyle(
                                         fontSize: 15,
                                         color: Colors.grey

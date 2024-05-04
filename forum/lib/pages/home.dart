@@ -11,6 +11,7 @@ import 'package:forum/components/media_card.dart';
 import 'package:forum/components/card_list.dart';
 import '../components/auto_switch_pageview.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../classes/localStorage.dart';
 
 class HomePage extends StatefulWidget {
   @override
@@ -23,20 +24,20 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
 
   List<ContentCard> content_cards = [
   ];
-  SharedPreferences? sharedPreferences;
+  // SharedPreferences? sharedPreferences;
   @override
   void initState(){
     super.initState();
-    initSharedPreference();
-    Future.delayed(Duration(milliseconds: 10),(){
-      getRecommendWorks();
-    });
+    // initSharedPreference();
+    // Future.delayed(Duration(milliseconds: 10),(){
+    //   getRecommendWorks();
+    // });
     // getRecommendWorks();
   }
 
-  void initSharedPreference() async{
-    sharedPreferences = await SharedPreferences.getInstance();
-  }
+  // void initSharedPreference() async{
+  //   sharedPreferences = await SharedPreferences.getInstance();
+  // }
 
   void getRecommendWorks() async{
     // print(Uri.http(BASEURL,'/api/cos/community/recommend_works_with_urls',{'maxNum': '10'}).toString());
@@ -45,12 +46,12 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     // }, );
     // print(r.statusCode.toString());
     requestGet('/api/cos/community/recommend_works', {
-      'Authorization': 'Bearer ${sharedPreferences?.getString('token') ?? '43432'}',
+      'Authorization': 'Bearer ${LocalStorage.getString('token') ?? '43432'}',
     },query: {
       'maxNum': '10'
     }).then((http.Response res) {
       print('1234');
-      print(sharedPreferences?.getString('token'));
+      print(LocalStorage.getString('token'));
       print(res.statusCode);
       if(res.statusCode == 200){
         List posts = json.decode(res.body)['posts'];
@@ -58,7 +59,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         for(var i in posts){
           requestGet('/api/user/get_user',
               {
-                'Authorization': 'Bearer ${sharedPreferences?.getString('token')}',
+                'Authorization': 'Bearer ${LocalStorage.getString('token')}',
               },query: {
                 'userId': i['userId']
               }).then((http.Response res2){

@@ -11,6 +11,7 @@ import '../url/user.dart';
 import '../url/websocket_service.dart';
 import 'navigation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../classes/localStorage.dart';
 
 class LoginLayout extends StatelessWidget{
 
@@ -56,16 +57,16 @@ class _LoginState extends State<Login>{
   final FocusNode _accountNode = FocusNode();
   final FocusNode _passwordNode = FocusNode();
   final _websocketService = WebSocketService();
-  SharedPreferences? sharedPreferences;
+  // SharedPreferences? sharedPreferences;
   @override
   void initState(){
     super.initState();
-    init();
+    // init();
   }
 
-  void init() async{
-    sharedPreferences = await SharedPreferences.getInstance();
-  }
+  // void init() async{
+  //   sharedPreferences = await SharedPreferences.getInstance();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -134,23 +135,22 @@ class _LoginState extends State<Login>{
                   ).then((http.Response res){
                     if(res.statusCode == 200){
                       Map body = json.decode(res.body) as Map;
-                      sharedPreferences?.setString('userName', body['content']['userName']);
-                      sharedPreferences?.setString('userId', body['content']['userId']);
-                      sharedPreferences?.setString('userAvatar', body['content']['userAvatar']);
-                      sharedPreferences?.setString('userEmail', body['content']['userEmail']);
-                      sharedPreferences?.setString('token', body['token']).then((value){
-                        _websocketService.connect(body['content']['userId']);
-                        Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const NavigationExample()), (route) => route == null);
-                      });
+                      LocalStorage.setString('userName', body['content']['userName']);
+                      LocalStorage.setString('userId', body['content']['userId']);
+                      LocalStorage.setString('userAvatar', body['content']['userAvatar']);
+                      LocalStorage.setString('userEmail', body['content']['userEmail']);
+                      LocalStorage.setString('token', body['token']);
+                      _websocketService.connect(body['content']['userId']);
+                      Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const NavigationExample()), (route) => route == null);
                     }else{
                       throw Exception("登录失败");
                     }
                   });
-                  // sharedPreferences?.setString('token', 'token');
-                  // sharedPreferences?.setString('userName', 'userName');
-                  // sharedPreferences?.setString('userId', 'userId');
-                  // sharedPreferences?.setString('userAvatar', 'userAvatar');
-                  // sharedPreferences?.setString('userEmail', 'userEmail');
+                  // LocalStorage.setString('token', 'token');
+                  // LocalStorage.setString('userName', 'userName');
+                  // LocalStorage.setString('userId', 'userId');
+                  // LocalStorage.setString('userAvatar', 'userAvatar');
+                  // LocalStorage.setString('userEmail', 'userEmail');
                   // Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const NavigationExample()), (route) => route == null);
                 },
                 style: ButtonStyle(
