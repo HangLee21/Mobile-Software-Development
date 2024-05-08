@@ -139,6 +139,7 @@ class _LoginState extends State<Login>{
                       LocalStorage.setString('userId', body['content']['userId']);
                       LocalStorage.setString('userAvatar', body['content']['userAvatar']);
                       LocalStorage.setString('userEmail', body['content']['userEmail']);
+                      print(body['token']);
                       LocalStorage.setString('token', body['token']);
                       _websocketService.connect(body['content']['userId']);
                       Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const NavigationExample()), (route) => route == null);

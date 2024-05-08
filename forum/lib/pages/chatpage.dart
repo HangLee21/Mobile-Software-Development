@@ -5,6 +5,7 @@ import 'dart:math';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:forum/classes/localStorage.dart';
 import 'package:forum/url/user.dart';
 import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,7 +30,7 @@ class ChatPage extends StatefulWidget{
 }
 
 class _ChatPageState extends State<ChatPage>{
-  static const String token = 'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MjM0NTYiLCJpYXQiOjE3MTQ2NTYwMjksImV4cCI6MTcxNDY1OTYyOX0.7gleT71s0c2emjd96cIrxpJHBhCcSKokEAN_U7O-B8DgnvOjbm4MU4QzgqikVonVKvLsmcj9JESSD_3UEFuLgg';
+
   //{'name': 'chl','content': 'content','me?': true,'createdAt': '2024-03-07 15:56','status': 1},
   List<Map> messages = [];
   SharedPreferences? sharedPreferences;
@@ -39,10 +40,17 @@ class _ChatPageState extends State<ChatPage>{
   late TextEditingController textEditingController;
   ScrollController _scrollController = ScrollController(); //listview的控制器
   late VideoPlayerController _controller;
-  late RecorderController recorderController;
+  late final RecorderController recorderController;
+
+  String? path;
+  String? musicFile;
+  bool isRecording = false;
+  bool isRecordingCompleted = false;
+  bool isLoading = true;
+  late Directory appDirectory;
 
   void _initLocalStorage()async{
-    sharedPreferences = await SharedPreferences.getInstance();
+
   }
   @override
   void initState() {
@@ -53,6 +61,60 @@ class _ChatPageState extends State<ChatPage>{
     initData();
     // listen to websocket
     initWebSocket();
+    _initialiseControllers();
+  }
+
+  void _pickFile() async {
+    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    if (result != null) {
+      musicFile = result.files.single.path;
+      setState(() {});
+    } else {
+      debugPrint("File not picked");
+    }
+  }
+
+  void _startOrStopRecording() async {
+    try {
+      if (isRecording) {
+        recorderController.reset();
+
+        path = await recorderController.stop(false);
+
+        if (path != null) {
+          isRecordingCompleted = true;
+          debugPrint(path);
+          debugPrint("Recorded file size: ${File(path!).lengthSync()}");
+        }
+      } else {
+        await recorderController.record(path: path); // Path is optional
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    } finally {
+      setState(() {
+        isRecording = !isRecording;
+      });
+    }
+  }
+
+  void _refreshWave() {
+    if (isRecording) recorderController.refresh();
+  }
+
+  @override
+  void dispose() {
+    recorderController.dispose();
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _initialiseControllers() {
+    recorderController = RecorderController()
+      ..androidEncoder = AndroidEncoder.aac
+      ..androidOutputFormat = AndroidOutputFormat.mpeg4
+      ..iosEncoder = IosEncoder.kAudioFormatMPEG4AAC
+      ..sampleRate = 44100;
   }
 
   initWebSocket() async {
@@ -87,10 +149,10 @@ class _ChatPageState extends State<ChatPage>{
   }
 
   initData() async {
+    print(LocalStorage.getString('token'));
     requestGet("/api/chat/get_all_messages", {
         'Content-Type': 'application/json',
-      // TODO change token
-        'Authorization': token
+        'Authorization': LocalStorage.getString('token') ?? ''
       },query:  {
       "userId": widget.selfId,
       "anotherId": widget.userId
@@ -588,16 +650,16 @@ class _ChatPageState extends State<ChatPage>{
       // TODO change token
       request.headers.addAll({
         'Content-Type': 'multipart/form-data',
-        'Authorization': token,
+        'Authorization': LocalStorage.getString('token') ?? '',
       });
       request.fields.addAll({
-        'userId': sharedPreferences?.getString('userId') ?? '',
+        'userId': LocalStorage.getString('userId') ?? '',
       });
 
       var response = await request.send();
       if (response.statusCode == 200) {
         var responseBody = await response.stream.bytesToString();
-        sharedPreferences?.setString('token', json.decode(responseBody)['token']);
+        LocalStorage.setString('token', json.decode(responseBody)['token']);
         var data = jsonDecode(responseBody);
         String url = data['content'][0];
         _websocketService.sendMessage("SINGLE_SENDING:${widget.selfId}:${widget.userId}:($picType)[${url}]").then((value) {
@@ -622,16 +684,16 @@ class _ChatPageState extends State<ChatPage>{
       // TODO change token
       request.headers.addAll({
         'Content-Type': 'multipart/form-data',
-        'Authorization': token,
+        'Authorization': LocalStorage.getString('token') ?? '',
       });
       request.fields.addAll({
-        'userId': sharedPreferences?.getString('userId') ?? '',
+        'userId': LocalStorage.getString('userId') ?? '',
       });
 
       var response = await request.send();
       if (response.statusCode == 200) {
         var responseBody = await response.stream.bytesToString();
-        sharedPreferences?.setString('token', json.decode(responseBody)['token']);
+        LocalStorage.setString('token', json.decode(responseBody)['token']);
         var data = jsonDecode(responseBody);
         String url = data['content'][0];
         _websocketService.sendMessage("SINGLE_SENDING:${widget.selfId}:${widget.userId}:($videoType)[${url}]").then((value) {
@@ -699,119 +761,145 @@ class _ChatPageState extends State<ChatPage>{
                   ),
                 ],
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: <Widget>[
-                GestureDetector(
-                onTap: (){},
-                onLongPress: (){
-                  // TODO record voice
-                },
-                child: Container(
-                    padding: const EdgeInsets.fromLTRB(5, 0, 0, 10),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        IconButton(
-                          icon: const Icon(Icons.volume_up),
-                          color: Color(0xFF838CFF),
-                          iconSize: 30, // 调整图标大小
-                          onPressed: () {
-                          },
-                        ),
-                      ],
-                    ),
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 200),
+                child: isRecording
+                    ? AudioWaveforms(
+                  enableGesture: true,
+                  size: Size(
+                      MediaQuery.of(context).size.width / 2,
+                      50),
+                  recorderController: recorderController,
+                  waveStyle: const WaveStyle(
+                    waveColor: Colors.white,
+                    extendWaveform: true,
+                    showMiddleLine: false,
                   ),
-                ),
-                  Expanded(
-                    child:Container(
-                      margin: EdgeInsets.fromLTRB(5, 10, 0, 10),
-                      constraints: const BoxConstraints(
-                        maxHeight: 100.0,
-                        minHeight: 50.0,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12.0),
+                      color: const Color(0xFF838CFF)
+                  ),
+                  padding: const EdgeInsets.only(left: 18),
+                  margin: const EdgeInsets.symmetric(
+                      horizontal: 15),
+                )
+                  : Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: <Widget>[
+                    GestureDetector(
+                      onTap: (){
+                        // TODO start record
+                        _startOrStopRecording();
+                      },
+                      onLongPress: (){
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(5, 0, 0, 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            IconButton(
+                              icon: const Icon(Icons.volume_up),
+                              color: Color(0xFF838CFF),
+                              iconSize: 30, // 调整图标大小
+                              onPressed: () {
+                              },
+                            ),
+                          ],
+                        ),
                       ),
-                      decoration: const BoxDecoration(
-                          color:  Color(0xFFF5F6FF),
-                          borderRadius: BorderRadius.all(Radius.circular(2))
-                      ),
-                      child: TextField(
-                        controller: textEditingController,
-                        cursorColor:Color(0xFF464EB5),
-                        maxLines: null,
-                        maxLength: 200,
-                        decoration: const InputDecoration(
-                          counterText: '',
-                          border: InputBorder.none,
-                          contentPadding: EdgeInsets.only(
-                              left: 16.0, right: 16.0, top: 10.0, bottom:10.0),
-                          hintText: "回复",
-                          hintStyle: TextStyle(
-                              color: Color(0xFFADB3BA),
+                    ),
+                    Expanded(
+                      child:Container(
+                        margin: EdgeInsets.fromLTRB(5, 10, 0, 10),
+                        constraints: const BoxConstraints(
+                          maxHeight: 100.0,
+                          minHeight: 50.0,
+                        ),
+                        decoration: const BoxDecoration(
+                            color:  Color(0xFFF5F6FF),
+                            borderRadius: BorderRadius.all(Radius.circular(2))
+                        ),
+                        child: TextField(
+                          controller: textEditingController,
+                          cursorColor:Color(0xFF464EB5),
+                          maxLines: null,
+                          maxLength: 200,
+                          decoration: const InputDecoration(
+                            counterText: '',
+                            border: InputBorder.none,
+                            contentPadding: EdgeInsets.only(
+                                left: 16.0, right: 16.0, top: 10.0, bottom:10.0),
+                            hintText: "回复",
+                            hintStyle: TextStyle(
+                                color: Color(0xFFADB3BA),
+                                fontSize:15
+                            ),
+                          ),
+                          style: const TextStyle(
+                              color: Color(0xFF03073C),
                               fontSize:15
                           ),
                         ),
-                        style: const TextStyle(
-                            color: Color(0xFF03073C),
-                            fontSize:15
-                        ),
                       ),
                     ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        IconButton(
-                          icon: const Icon(Icons.photo),
-                          color: Color(0xFF838CFF),
-                          iconSize: 30, // 调整图标大小
-                          onPressed: () {
-                            // TODO: 添加按钮点击后的操作
-                            addPicture();
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: <Widget>[
-                        IconButton(
-                          icon: const Icon(Icons.videocam),
-                          color: Color(0xFF838CFF),
-                          iconSize: 30, // 调整图标大小
-                          onPressed: () {
-                            // TODO: 添加按钮点击后的操作
-                            addVideo();
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
-                  GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    child: Container(
+                    Container(
                       padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
                           IconButton(
-                            icon: const Icon(Icons.send),
+                            icon: const Icon(Icons.photo),
                             color: Color(0xFF838CFF),
-                            iconSize: 26, // 调整图标大小
+                            iconSize: 30, // 调整图标大小
                             onPressed: () {
-                              sendTxt();
+                              // TODO: 添加按钮点击后的操作
+                              addPicture();
                             },
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
-              ),
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          IconButton(
+                            icon: const Icon(Icons.videocam),
+                            color: Color(0xFF838CFF),
+                            iconSize: 30, // 调整图标大小
+                            onPressed: () {
+                              // TODO: 添加按钮点击后的操作
+                              addVideo();
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                    GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      child: Container(
+                        padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            IconButton(
+                              icon: const Icon(Icons.send),
+                              color: Color(0xFF838CFF),
+                              iconSize: 26, // 调整图标大小
+                              onPressed: () {
+                                sendTxt();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+
+              )
             ),
           ],
         ),
