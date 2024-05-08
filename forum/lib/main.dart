@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:forum/classes/localStorage.dart';
 import 'package:forum/pages/navigation.dart';
 import 'package:forum/theme/theme_data.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -18,26 +19,24 @@ class ForumApp extends StatefulWidget{
 
 class _ForumAppState extends State<ForumApp> {
 
-  bool logined = false;
+  bool logined = true;
 
   @override
   void initState(){
     super.initState();
-    initLocalStorage().then((sharedPreferences){
-      if(sharedPreferences.getString('token') != null){
-        logined = true;
-        setState(() {
-
-        });
-      }
-    });
+    init();
 
 
   }
 
-  Future initLocalStorage()async{
-    SharedPreferences? sharedPreferences = await SharedPreferences.getInstance();
-    return sharedPreferences;
+  void init()async{
+    await LocalStorage.init();
+    print('name:${LocalStorage.getString('userName')}');
+    if (LocalStorage.getString('token') != '' && LocalStorage.getString('token') != null){
+      logined = true;
+    }else{
+      logined = false;
+    }
   }
 
   @override
@@ -51,7 +50,7 @@ class _ForumAppState extends State<ForumApp> {
           //启用
           useMaterial3: true,
         ),
-      home: logined?LoginLayout():const NavigationExample(),
+      home: !logined?LoginLayout():const NavigationExample(),
       builder:EasyLoading.init(),
     );
   }

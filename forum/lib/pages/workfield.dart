@@ -12,6 +12,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:better_player/better_player.dart';
 
+import '../constants.dart';
+
 class WorkField extends StatefulWidget{
   final String title;
   final String content;
@@ -55,35 +57,40 @@ class _WorkFieldState extends State<WorkField>{
     if (result != null) {
       print('yes');
       File file = File(result.files.single.path!);
-      requestPost(
-          '/api/cos/upload_post_material',
-          {
-            'file': file
-          },
-          {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bear ${sharedPreferences?.getString('token')}'
-          },
-          query: {
-            'userId': sharedPreferences?.getString('userId'),
-            'postId': postId
-          }
-      ).then((http.Response res) {
-        if(res.statusCode == 200){
-          sharedPreferences?.setString('token', json.decode(res.body)['token']);
-          String url = json.decode(res.body)['content'];
-          setState(() {
-            materials = [...materials, url];
-            materialCount = materials.length + 1;
-          });
-        }
+      var uri = Uri.parse('http://$BASEURL/api/cos/upload_post_material');
+      var request = http.MultipartRequest('POST', uri);
+      request.files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          file.path,
+        ),
+      );
+      request.headers.addAll({
+        'Content-Type': 'multipart/form-data',
+        'Authorization': sharedPreferences?.getString('token') ?? '',
       });
+      request.fields.addAll({
+        'userId': sharedPreferences?.getString('userId') ?? '',
+      });
+
+      var response = await request.send();
+      if(response.statusCode == 200){
+        print("addMaterial");
+        var responseBody = await response.stream.bytesToString();
+        sharedPreferences?.setString('token', json.decode(responseBody)['token']);
+        String url = json.decode(responseBody)['content'];
+        setState(() {
+          materials = [...materials, url];
+          materialCount = materials.length + 1;
+        });
+      }
     }
     EasyLoading.dismiss();
   }
 
   void _deleteImage(int index) async{
     //TODO delete
+
     String url = materials[index];
     List<String> parts = url.split('/');
     String filename = parts.last;
@@ -93,7 +100,7 @@ class _WorkFieldState extends State<WorkField>{
 
       },
       {
-        'Authorization':'Bear ${sharedPreferences?.getString('token')}'
+        'Authorization':'Bearer ${sharedPreferences?.getString('token')}'
       },
       query: {
         'userId':sharedPreferences?.getString('userId'),
@@ -102,9 +109,10 @@ class _WorkFieldState extends State<WorkField>{
       }
     ).then((http.Response res){
       if(res.statusCode == 200){
+        print('delete');
         sharedPreferences?.setString('token', json.decode(res.body)['token']);
         setState(() {
-          materials.remove(index);
+          materials.removeAt(index);
           materialCount = materials.length + 1;
         });
       }
@@ -112,6 +120,7 @@ class _WorkFieldState extends State<WorkField>{
   }
 
   void showMaterial(){
+    //TODO 添加图片dialog
     showDialog(context: context, builder: (context){
       return BetterPlayer.file('D://obs//obs文件//展示视频素材//chat.mkv');
     });
@@ -119,6 +128,10 @@ class _WorkFieldState extends State<WorkField>{
 
   Widget _buildMaterialBox(int index) {
     // 这里可以根据实际情况构建你的图片方块
+    print(materialCount);
+    if(materials.length > 0) {
+      print(materials[0]);
+    }
     if(index < materialCount - 1) {
       return Stack(
           children: [
@@ -132,16 +145,21 @@ class _WorkFieldState extends State<WorkField>{
                   child: ClipRRect(
                       borderRadius: BorderRadius.circular(0),
                       child:
-                      materials[index].split('.')[materials[index].split('.').length] == 'png' || materials[index].split('.')[materials[index].split('.').length] == 'jpg'?
+                      // materials[index].split('.')[materials[index].split('.').length] == 'png' || materials[index].split('.')[materials[index].split('.').length] == 'jpg'?
+                      // Image.network(
+                      //     materials[index],
+                      //     width: 80,
+                      //     height: 80
+                      // )
+                      //     :Image.network(
+                      //     materials[index],
+                      //     width: 80,
+                      //     height: 80
+                      // )
                       Image.network(
-                          materials[index],
-                          width: 80,
-                          height: 80
-                      )
-                          :Image.network(
-                          materials[index],
-                          width: 80,
-                          height: 80
+                        materials[index],
+                        width: 80,
+                        height: 80
                       )
                   ),
                 ),
@@ -227,7 +245,7 @@ class _WorkFieldState extends State<WorkField>{
           },
           {
             'Content-Type': 'application/json',
-            'Authorization': 'Bear ${sharedPreferences?.getString('token')}'
+            'Authorization': 'Bearer ${sharedPreferences?.getString('token')}'
           }
         ).then((http.Response res){
           if(res.statusCode == 200){
@@ -283,7 +301,7 @@ class _WorkFieldState extends State<WorkField>{
         },
         {
           'Content-Type': 'application/json',
-          'Authorization': 'Bear ${sharedPreferences?.getString('token')}'
+          'Authorization': 'Bearer ${sharedPreferences?.getString('token')}'
         }
     ).then((http.Response res){
         if(res.statusCode == 200){
@@ -312,7 +330,7 @@ class _WorkFieldState extends State<WorkField>{
         },
         {
           'Content-Type': 'application/json',
-          'Authorization': 'Bear ${sharedPreferences?.getString('token')}'
+          'Authorization': 'Bearer ${sharedPreferences?.getString('token')}'
         }
     ).then((http.Response res){
         if(res.statusCode == 200){

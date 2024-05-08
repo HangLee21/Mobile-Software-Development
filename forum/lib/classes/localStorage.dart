@@ -3,15 +3,30 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class LocalStorage {
   static SharedPreferences? sharedPreferences;
-  static void init()async{
-    sharedPreferences ??= await SharedPreferences.getInstance();
+  static Future<void> init() async {
+    print('init start');
+    if (sharedPreferences == null) {
+      print('sharedPreferences is null, initializing...');
+      sharedPreferences = await SharedPreferences.getInstance();
+      if (sharedPreferences == null) {
+        print('sharedPreferences initialization failed');
+      } else {
+        print('sharedPreferences initialization successful');
+      }
+    } else {
+      print('sharedPreferences is already initialized');
+    }
   }
   static String? getString(String string){
-    init();
+    if (sharedPreferences == null) {
+      init();
+    }
     return sharedPreferences?.getString(string);
   }
   static void setString(String key,String value){
-    init();
+    if (sharedPreferences == null) {
+      init();
+    }
     sharedPreferences?.setString(key, value);
   }
 }

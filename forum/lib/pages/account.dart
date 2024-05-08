@@ -19,15 +19,15 @@ class _AccountState extends State<AccountPage>{
   @override
   void initState(){
     super.initState();
+    print('userName:${LocalStorage.getString('userName')}');
+    init();
 
-    // init();
-    avatar = LocalStorage.getString('userAvatar')??'';
   }
 
-  // void init() async {
-  //   sharedPreferences = await SharedPreferences.getInstance();
-  //   setState(() {});
-  // }
+  void init() async {
+    avatar = LocalStorage.getString('userAvatar')??'';
+    setState(() {});
+  }
   //
   // SharedPreferences? sharedPreferences;
   @override
