@@ -56,11 +56,12 @@ class _LoginState extends State<Login>{
 
   final FocusNode _accountNode = FocusNode();
   final FocusNode _passwordNode = FocusNode();
-  final _websocketService = WebSocketService();
+  // final _websocketService = WebSocketService();
   // SharedPreferences? sharedPreferences;
   @override
   void initState(){
     super.initState();
+
     // init();
   }
 
@@ -125,6 +126,7 @@ class _LoginState extends State<Login>{
             ElevatedButton(
                 onPressed: (){
                   //TODO 登录
+                  // print('login');
                   requestPost(
                     '/api/user/log_in',
                     {
@@ -140,7 +142,10 @@ class _LoginState extends State<Login>{
                       LocalStorage.setString('userAvatar', body['content']['userAvatar']);
                       LocalStorage.setString('userEmail', body['content']['userEmail']);
                       LocalStorage.setString('token', body['token']);
-                      _websocketService.connect(body['content']['userId']);
+                      print('new:${body['token']}');
+                      print('newName:${body['content']['userName']}');
+                      print('logintoken:${LocalStorage.getString('token')}');
+                      // _websocketService.connect(body['content']['userId']);
                       Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const NavigationExample()), (route) => route == null);
                     }else{
                       throw Exception("登录失败");

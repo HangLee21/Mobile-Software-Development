@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:forum/classes/localStorage.dart';
 import 'package:forum/components/card_list.dart';
 import 'package:forum/components/content_card.dart';
 import 'package:forum/constants.dart';
@@ -243,7 +244,9 @@ class SettingsState extends State<Settings>{
             ),
             const SizedBox(height: 20,),
             ElevatedButton(onPressed: (){
+              print('clear1: ${LocalStorage.getString('token')}');
               sharedPreferences?.clear();
+              print('clear2: ${LocalStorage.getString('token')}');
               Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => LoginLayout()), (route) => false);
             }, child: Text('退出登录'))
           ],
