@@ -29,4 +29,11 @@ class LocalStorage {
     }
     sharedPreferences?.setString(key, value);
   }
+
+  static void remove(String key){
+    if (sharedPreferences == null) {
+      init();
+    }
+    sharedPreferences?.remove(key);
+  }
 }
