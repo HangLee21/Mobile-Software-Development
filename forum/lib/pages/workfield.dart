@@ -122,7 +122,7 @@ class _WorkFieldState extends State<WorkField>{
   void showMaterial(){
     //TODO 添加图片dialog
     showDialog(context: context, builder: (context){
-      return BetterPlayer.file('D://obs//obs文件//展示视频素材//chat.mkv');
+      return BetterPlayer.network('https://prod-streaming-video-msn-com.akamaized.net/a8c412fa-f696-4ff2-9c76-e8ed9cdffe0f/604a87fc-e7bc-463e-8d56-cde7e661d690.mp4');
     });
   }
 
