@@ -3,14 +3,20 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
+import 'package:animated_snack_bar/animated_snack_bar.dart';
+import 'package:better_player/better_player.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flick_video_player/flick_video_player.dart';
 import 'package:flutter/material.dart';
 import 'package:forum/classes/localStorage.dart';
 import 'package:forum/url/user.dart';
 import 'package:http/http.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../classes/message.dart';
 import '../classes/notification_card.dart';
+import '../components/chat_bubble.dart';
+import '../components/notificationcard.dart';
 import '../constants.dart';
 import '../storage/notificationInfo_storage.dart';
 import '../url/websocket_service.dart';
@@ -18,11 +24,13 @@ import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:http/http.dart' as http;
 import 'package:video_player/video_player.dart';
 import 'package:audio_waveforms/audio_waveforms.dart';
+import 'package:vimeo_video_player/vimeo_video_player.dart';
+import 'package:path_provider/path_provider.dart';
 // TODO add websocket listener
 class ChatPage extends StatefulWidget{
   final String userId;
   // TODO change self id
-  String selfId = "test23456";
+  String selfId = '';
   ChatPage({super.key, required this.userId});
 
   @override
@@ -41,6 +49,7 @@ class _ChatPageState extends State<ChatPage>{
   ScrollController _scrollController = ScrollController(); //listview的控制器
   late VideoPlayerController _controller;
   late final RecorderController recorderController;
+  late FlickManager flickManager;
 
   String? path;
   String? musicFile;
@@ -48,14 +57,19 @@ class _ChatPageState extends State<ChatPage>{
   bool isRecordingCompleted = false;
   bool isLoading = true;
   late Directory appDirectory;
+  final _player = AudioPlayer();
+  StreamSubscription<dynamic>? _streamSubscription;
+
 
   void _initLocalStorage()async{
-
+      widget.selfId = LocalStorage.getString('userId')!;
+      LocalStorage.setString('currentUserId', widget.userId);
   }
   @override
   void initState() {
     super.initState();
     textEditingController = TextEditingController();
+    _getDir();
     _initLocalStorage();
     // get chat history
     initData();
@@ -63,28 +77,23 @@ class _ChatPageState extends State<ChatPage>{
     initWebSocket();
     _initialiseControllers();
   }
-
-  void _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    if (result != null) {
-      musicFile = result.files.single.path;
-      setState(() {});
-    } else {
-      debugPrint("File not picked");
-    }
+  void _getDir() async {
+    appDirectory = await getApplicationDocumentsDirectory();
+    path = "${appDirectory.path}/recording.m4a";
+    isLoading = false;
+    setState(() {});
   }
 
   void _startOrStopRecording() async {
     try {
       if (isRecording) {
         recorderController.reset();
-
         path = await recorderController.stop(false);
-
         if (path != null) {
           isRecordingCompleted = true;
           debugPrint(path);
           debugPrint("Recorded file size: ${File(path!).lengthSync()}");
+          addAudio(path!);
         }
       } else {
         await recorderController.record(path: path); // Path is optional
@@ -105,7 +114,9 @@ class _ChatPageState extends State<ChatPage>{
   @override
   void dispose() {
     recorderController.dispose();
-    _controller.dispose();
+    _streamSubscription?.cancel();
+    // if(_betterPlayerController.i)
+    // _betterPlayerController.dispose();
     super.dispose();
   }
 
@@ -118,47 +129,78 @@ class _ChatPageState extends State<ChatPage>{
   }
 
   initWebSocket() async {
-    _websocketService.stream?.listen((message) async {
+    _streamSubscription = _websocketService.stream!.listen((message) async {
       setState(() {
         Message message1 = Message.fromString(message);
+        // print('chat');
+        // print(message1);
         // 截取日期和时间部分
         String datePart = message1.time.substring(0, 10);
         String timePart = message1.time.substring(11, 19);
 
         // 格式化时间
         String formattedTime = '$datePart $timePart';
-        messages.insert(0, {
-          'name': message1.senderId,
-          'content': message1.content,
-          'me?': false,
-          'createdAt': formattedTime,
-          'status': 1,
-          'show': true
-        });
+        if(message1.senderId == widget.userId){
+          messages.insert(0, {
+            'name': message1.senderId,
+            'content': message1.content,
+            'me?': false,
+            'createdAt': formattedTime,
+            'status': 1,
+            'show': true
+          });
 
-        if(messages.length > 1){
-          DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
-          DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
-          Duration difference = current.difference(previous);
-          if (difference.inMinutes <= 5) {
-            messages[0]['show'] = false;
+          if(messages.length > 1){
+            DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
+            DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
+            Duration difference = current.difference(previous);
+            if (difference.inMinutes <= 5) {
+              messages[0]['show'] = false;
+            }
           }
+        }
+        else{
+          // 定义正则表达式模式
+          RegExp regex = RegExp(r'\((.*?)\)\[(.*?)\]');
+          //print('content: '+ item['content']);
+          Match? match = regex.firstMatch(message1.content);
+          String content = message1.content;
+          // 检查是否匹配成功
+          if (match != null) {
+            content = '暂不支持的消息格式，请跳转页面详细观看内容';
+          }
+          AnimatedSnackBar(
+            duration: Duration(seconds: 4),
+            builder: ((context) {
+              return NotificationCard(
+                friendname: message1.senderId,
+                content: content,
+                url: '',
+                friendId: message1.senderId,
+                info_num: 0,
+                remove: true,
+                onPressed: () {
+
+                },
+              );
+            }),
+          ).show(context);
         }
       });
     });
   }
 
   initData() async {
-    print(LocalStorage.getString('token'));
+    //print(LocalStorage.getString('token'));
     requestGet("/api/chat/get_all_messages", {
         'Content-Type': 'application/json',
-        'Authorization': LocalStorage.getString('token') ?? ''
+        'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
       },query:  {
       "userId": widget.selfId,
       "anotherId": widget.userId
     }).then((response) {
       setState(() {
-        print(response.statusCode);
+        //print(response.statusCode);
         if (response.statusCode == 200) {
           String decodedString = utf8.decode(response.bodyBytes);
           Map body = jsonDecode(decodedString) as Map;
@@ -224,42 +266,50 @@ class _ChatPageState extends State<ChatPage>{
 
 
   }
+  late BetterPlayerController _betterPlayerController;
 
   Widget _renderRowSendByOthers(BuildContext context, item) {
     // 定义正则表达式模式
-    RegExp regex = RegExp(r'\((\w+)\)\[(\w+)\]');
+    RegExp regex = RegExp(r'\((.*?)\)\[(.*?)\]');
     String type = '';
     String url = '';
+    String filename = '';
+    String filepath = '';
     // 进行匹配
+    //print('content: '+ item['content']);
     Match? match = regex.firstMatch(item['content']);
 
     // 检查是否匹配成功
     if (match != null) {
       // 输出第一个括号内的内容（第一个单词）
-      print('第一个单词: ${match.group(1)}');
+      //print('第一个单词: ${match.group(1)}');
       // 输出第二个括号内的内容（第二个单词）
-      print('第二个单词: ${match.group(2)}');
+      //print('第二个单词: ${match.group(2)}');
       type = match.group(1).toString();
       url = match.group(2).toString();
+      print(url);
       if(type != picType && type != videoType && type != audioType){
         type = '';
       }
 
       if(type == videoType){
-        _controller = VideoPlayerController.networkUrl(Uri.parse(
-          // TODO change url
-            'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4'))
-          ..initialize().then((_) {
-            // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-            setState(() {});
-          });
+        BetterPlayerDataSource betterPlayerDataSource = BetterPlayerDataSource(
+            BetterPlayerDataSourceType.network,
+            url);
+        _betterPlayerController = BetterPlayerController(
+            BetterPlayerConfiguration(
+              fit: BoxFit.contain,
+              handleLifecycle: false, // 禁用预加载
+            ),
+            betterPlayerDataSource: betterPlayerDataSource);
       }
       else if(type == audioType){
-        recorderController = RecorderController();
+        filename = url.split('/').last;
+        filepath = '${appDirectory.path}/$filename';
+        if(!checkFileExists(filepath)){
+          downloadFile(url, filepath);
+        }
       }
-    } else {
-      // 如果没有匹配成功
-      print('没有找到匹配的模式');
     }
 
     return Container(
@@ -328,6 +378,36 @@ class _ChatPageState extends State<ChatPage>{
                           //           "static/images/chat_white_arrow.png")),
                           //   margin: EdgeInsets.fromLTRB(2, 16, 0, 0),
                           // ),
+                          if (type == picType)
+                            ConstrainedBox(constraints: BoxConstraints(
+                              maxWidth: 300,
+                              maxHeight: 200,
+                            ),
+                              child: Image.network(
+                                url,
+                              ),
+                            ),
+                          if (type == videoType)
+                            ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth: 300,
+                                maxHeight: 200,
+                              ),
+                              child: Container(
+                                  margin: EdgeInsets.fromLTRB(0, 20, 10, 0),
+                                  child: BetterPlayer(
+                                    controller: _betterPlayerController,
+                                  ),
+                              ),
+                            ),
+                          if (type == audioType)
+                            WaveBubble(
+                              filename: filename,
+                              isSender: false,
+                              width: MediaQuery.of(context).size.width / 2,
+                              appDirectory: appDirectory,
+                            ),
+                          if (type == '')
                           Container(
                             decoration: BoxDecoration(
                                 boxShadow: [
@@ -344,23 +424,6 @@ class _ChatPageState extends State<ChatPage>{
                             padding: EdgeInsets.all(10),
                             child: Column(
                               children: [
-                                  if (type == picType)
-                                    Image.network(
-                                      url,
-                                      width: 200,
-                                      height: 200,
-                                    ),
-                                  if (type == videoType)
-                                    Container(
-                                      child: AspectRatio(
-                                        aspectRatio: _controller.value.aspectRatio,
-                                        child: VideoPlayer(_controller),
-                                      ),
-                                    ),
-                                  if (type == audioType)
-                                    // TODO add audio player
-                                    Container(),
-                                  if (type == '')
                                     Text(
                                       item['content'],
                                       style: TextStyle(
@@ -386,39 +449,43 @@ class _ChatPageState extends State<ChatPage>{
 
   Widget _renderRowSendByMe(BuildContext context, item) {
     // 定义正则表达式模式
-    RegExp regex = RegExp(r'\((\w+)\)\[(\w+)\]');
+    RegExp regex = RegExp(r'\((.*?)\)\[(.*?)\]');
     String type = '';
     String url = '';
-    // 进行匹配
+    //print('content: '+ item['content']);
     Match? match = regex.firstMatch(item['content']);
-
+    String filename = '';
+    String filepath = '';
     // 检查是否匹配成功
     if (match != null) {
       // 输出第一个括号内的内容（第一个单词）
-      print('第一个单词: ${match.group(1)}');
+      //print('第一个单词: ${match.group(1)}');
       // 输出第二个括号内的内容（第二个单词）
-      print('第二个单词: ${match.group(2)}');
+      //print('第二个单词: ${match.group(2)}');
       type = match.group(1).toString();
       url = match.group(2).toString();
       if(type != picType && type != videoType && type != audioType){
         type = '';
       }
-
+      print(url);
       if(type == videoType){
-        _controller = VideoPlayerController.networkUrl(Uri.parse(
-          // TODO change url
-            'https://flutter.github.io/assets-for-api-docs/assets/videos/bee.mp4'))
-          ..initialize().then((_) {
-            // Ensure the first frame is shown after the video is initialized, even before the play button has been pressed.
-            setState(() {});
-          });
+        BetterPlayerDataSource betterPlayerDataSource = BetterPlayerDataSource(
+            BetterPlayerDataSourceType.network,
+            url);
+        _betterPlayerController = BetterPlayerController(
+            BetterPlayerConfiguration(
+              fit: BoxFit.contain,
+              handleLifecycle: false, // 禁用预加载
+            ),
+            betterPlayerDataSource: betterPlayerDataSource);
       }
       else if(type == audioType){
-        recorderController = RecorderController();
+        filename = url.split('/').last;
+        filepath = '${appDirectory.path}/$filename';
+        if(!checkFileExists(filepath)){
+          downloadFile(url, filepath);
+        }
       }
-    } else {
-      // 如果没有匹配成功
-      print('没有找到匹配的模式');
     }
 
     return Container(
@@ -487,83 +554,103 @@ class _ChatPageState extends State<ChatPage>{
                       //       image: AssetImage(
                       //           "static/images/chat_purple_arrow.png")),
                       // ),
-                      Row(
-                        textDirection: TextDirection.rtl,
-                        children: <Widget>[
-                          ConstrainedBox(
-                            child: Container(
-                              margin: EdgeInsets.only(top: 8, right: 10),
-                              decoration: BoxDecoration(
-                                  boxShadow: [
-                                    BoxShadow(
-                                      offset: Offset(4.0, 7.0),
-                                      color: Color(0x04000000),
-                                      blurRadius: 10,
-                                    ),
-                                  ],
-                                  color: Color(0xFF838CFF),
-                                  borderRadius:
-                                  BorderRadius.all(Radius.circular(10))),
-                              padding: EdgeInsets.all(10),
-                              child: Column(
-                                children: [
-                                  if (type == picType)
-                                    Image.network(
-                                      url,
-                                      width: 200,
-                                      height: 200,
-                                    ),
-                                  if (type == videoType)
-                                    Container(
-                                      child: AspectRatio(
-                                        aspectRatio: _controller.value.aspectRatio,
-                                        child: VideoPlayer(_controller),
-                                      ),
-                                    ),
-                                  if (type == audioType)
-                                  // TODO add audio player
-                                    Container(),
-                                  if (type == '')
-                                    Text(
-                                      item['content'],
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                ],
-                              )
-                            ),
-                            constraints: BoxConstraints(
-                              maxWidth: contentMaxWidth,
-                            ),
-                          ),
-                          Container(
-                              margin: EdgeInsets.fromLTRB(0, 8, 8, 0),
-                              child: item['status'] == SENDING_TYPE
-                                  ? ConstrainedBox(
-                                constraints:
-                                BoxConstraints(maxWidth: 10, maxHeight: 10),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: contentMaxWidth + 10,
+                        ),
+                        child: Row(
+                          textDirection: TextDirection.rtl,
+                          children: <Widget>[
+                            if (type == picType)
+                              ConstrainedBox(constraints: BoxConstraints(
+                                maxWidth: 300,
+                                maxHeight: 200,
+                              ),
+                                child: Image.network(
+                                  url,
+                                ),
+                              ),
+                            if (type == videoType)
+                              ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: 300,
+                                  maxHeight: 200,
+                                ),
                                 child: Container(
-                                  width: 10,
-                                  height: 10,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.0,
-                                    valueColor: new AlwaysStoppedAnimation<Color>(
-                                        Colors.grey),
+                                  margin: EdgeInsets.fromLTRB(0, 20, 10, 0),
+                                  child: BetterPlayer(
+                                    controller: _betterPlayerController,
                                   ),
                                 ),
-                              )
-                                  // : item['status'] == FAILED_TYPE
-                                  // ? Image(
-                                  // width: 11,
-                                  // height: 20,
-                                  // image: AssetImage(
-                                  //     "assets/images/1.jpg"))
-                                  // :
-                              :Container()),
-                        ],
-                      ),
+                              ),
+                            if (type == audioType)
+                            // TODO add audio player
+                              WaveBubble(
+                                filename: filename,
+                                isSender: true,
+                                width: MediaQuery.of(context).size.width / 2,
+                                appDirectory: appDirectory,
+                              ),
+                            if (type == '')
+                              ConstrainedBox(
+                                child: Container(
+                                    margin: EdgeInsets.only(top: 8, right: 10),
+                                    decoration: BoxDecoration(
+                                        boxShadow: [
+                                          BoxShadow(
+                                            offset: Offset(4.0, 7.0),
+                                            color: Color(0x04000000),
+                                            blurRadius: 10,
+                                          ),
+                                        ],
+                                        color: Color(0xFF838CFF),
+                                        borderRadius:
+                                        BorderRadius.all(Radius.circular(10))),
+                                    padding: EdgeInsets.all(10),
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          item['content'],
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                ),
+                                constraints: BoxConstraints(
+                                  maxWidth: contentMaxWidth,
+                                ),
+                              ),
+                            Container(
+                                margin: EdgeInsets.fromLTRB(0, 8, 8, 0),
+                                child: item['status'] == SENDING_TYPE
+                                    ? ConstrainedBox(
+                                  constraints:
+                                  BoxConstraints(maxWidth: 10, maxHeight: 10),
+                                  child: Container(
+                                    width: 10,
+                                    height: 10,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.0,
+                                      valueColor: new AlwaysStoppedAnimation<Color>(
+                                          Colors.grey),
+                                    ),
+                                  ),
+                                )
+                                // : item['status'] == FAILED_TYPE
+                                // ? Image(
+                                // width: 11,
+                                // height: 20,
+                                // image: AssetImage(
+                                //     "assets/images/1.jpg"))
+                                // :
+                                    :Container()),
+                          ],
+                        ),
+                      )
+
                     ],
                   ),
                 ],
@@ -635,6 +722,35 @@ class _ChatPageState extends State<ChatPage>{
     return '0$n';
   }
 
+  void addAudio(String path) async {
+    File file = File(path);
+    var uri = Uri.parse('http://$BASEURL/api/cos/upload_chat_pictures');
+    var request = http.MultipartRequest('POST', uri);
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        file.path,
+      ),
+    );
+    request.headers.addAll({
+      'Content-Type': 'multipart/form-data',
+      'Authorization': 'Bearer ${LocalStorage.getString('token') ?? ''}',
+    });
+    request.fields.addAll({
+      'userId': LocalStorage.getString('userId') ?? '',
+    });
+
+    var response = await request.send();
+    if (response.statusCode == 200) {
+      var responseBody = await response.stream.bytesToString();
+      LocalStorage.setString('token', json.decode(responseBody)['token']);
+      var data = jsonDecode(responseBody);
+      String url = data['content'][0];
+      String content = "SINGLE_SENDING:${widget.selfId}:${widget.userId}:($audioType)[$url]";
+      addMessage(content, 'audio');
+    }
+  }
+
   void addPicture() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.image);
     if (result != null) {
@@ -647,10 +763,9 @@ class _ChatPageState extends State<ChatPage>{
           file.path,
         ),
       );
-      // TODO change token
       request.headers.addAll({
         'Content-Type': 'multipart/form-data',
-        'Authorization': LocalStorage.getString('token') ?? '',
+        'Authorization': 'Bearer ${LocalStorage.getString('token') ?? ''}',
       });
       request.fields.addAll({
         'userId': LocalStorage.getString('userId') ?? '',
@@ -662,9 +777,8 @@ class _ChatPageState extends State<ChatPage>{
         LocalStorage.setString('token', json.decode(responseBody)['token']);
         var data = jsonDecode(responseBody);
         String url = data['content'][0];
-        _websocketService.sendMessage("SINGLE_SENDING:${widget.selfId}:${widget.userId}:($picType)[${url}]").then((value) {
-          addMessage(url, 'image');
-        });
+        String content = "SINGLE_SENDING:${widget.selfId}:${widget.userId}:($picType)[$url]";
+        addMessage(content, 'image');
       }
     }
   }
@@ -681,43 +795,114 @@ class _ChatPageState extends State<ChatPage>{
           file.path,
         ),
       );
-      // TODO change token
       request.headers.addAll({
         'Content-Type': 'multipart/form-data',
-        'Authorization': LocalStorage.getString('token') ?? '',
+        'Authorization': 'Bearer ${LocalStorage.getString('token') ?? ''}',
       });
       request.fields.addAll({
         'userId': LocalStorage.getString('userId') ?? '',
       });
 
       var response = await request.send();
+      print(response.statusCode);
       if (response.statusCode == 200) {
         var responseBody = await response.stream.bytesToString();
         LocalStorage.setString('token', json.decode(responseBody)['token']);
         var data = jsonDecode(responseBody);
         String url = data['content'][0];
-        _websocketService.sendMessage("SINGLE_SENDING:${widget.selfId}:${widget.userId}:($videoType)[${url}]").then((value) {
-          addMessage(url, 'video');
-        });
+        String content = "SINGLE_SENDING:${widget.selfId}:${widget.userId}:($videoType)[${url}]";
+        addMessage(content, 'video');
       }
+      else{
+        var responseBody = await response.stream.bytesToString();
+        var data = jsonDecode(responseBody);
+        String content = "SINGLE_SENDING:${widget.selfId}:${widget.userId}:${data}]";
+        addErrorMessage(content);
+        print(response.statusCode);
+      }
+    }
+    else{
+      print("no file selected");
     }
   }
 
   addMessage(content, tag) {
     // 获取当前时间
-    DateTime now = DateTime.now();
-
+    DateTime now = DateTime.now().toLocal();
     // 将时间格式化为字符串，精确到秒
+    // 转化时区
+    now = now.add(Duration(hours: 8));
     String formattedTime = '${now.year}-${_twoDigits(now.month)}-${_twoDigits(now.day)} '
         '${_twoDigits(now.hour)}:${_twoDigits(now.minute)}:${_twoDigits(now.second)}';
     setState(() {
       messages.insert(0, {
-        'name': widget.selfId,'content': 'content','me?': true,'createdAt': formattedTime
+        'name': widget.selfId,
+        'content': content,
+        'me?': true,
+        'createdAt': formattedTime,
+        'status': SENDING_TYPE,
+        'show': true
       });
     });
-    Timer(
-        Duration(milliseconds: 100),
+
+    if(messages.length > 1){
+      DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
+      DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
+      Duration difference = current.difference(previous);
+      if (difference.inMinutes <= 5) {
+        messages[0]['show'] = false;
+      }
+    }
+    Timer(Duration(milliseconds: 100),
             () => _scrollController.jumpTo(0));
+    textEditingController.clear();
+    _websocketService.sendMessage("SINGLE_SENDING:${widget.selfId}:${widget.userId}:${content}").then((value) {
+      setState(() {
+        messages[0]['status'] = SUCCESSED_TYPE;
+      });
+    }).catchError((e) {
+      setState(() {
+        messages[0]['status'] = FAILED_TYPE;
+      });
+    });
+    if(tag == 'image' || tag == 'video' || tag == 'audio') {
+      content = '未支持的媒体类型 请进入页面详细观看';
+    }
+    // add to local storage
+    NotificationInfo notification = NotificationInfo(friendId: widget.userId, time: formattedTime, content: content, info_num: 0);
+    NotificationStorage().saveNotification(notification);
+  }
+
+  void addErrorMessage(content){
+    // 获取当前时间
+    DateTime now = DateTime.now().toLocal();
+    // 将时间格式化为字符串，精确到秒
+    // 转化时区
+    now = now.add(Duration(hours: 8));
+    String formattedTime = '${now.year}-${_twoDigits(now.month)}-${_twoDigits(now.day)} '
+        '${_twoDigits(now.hour)}:${_twoDigits(now.minute)}:${_twoDigits(now.second)}';
+    setState(() {
+      messages.insert(0, {
+        'name': widget.selfId,
+        'content': content,
+        'me?': true,
+        'createdAt': formattedTime,
+        'status': FAILED_TYPE,
+        'show': true
+      });
+    });
+
+    if(messages.length > 1){
+      DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
+      DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
+      Duration difference = current.difference(previous);
+      if (difference.inMinutes <= 5) {
+        messages[0]['show'] = false;
+      }
+    }
+    Timer(Duration(milliseconds: 100),
+            () => _scrollController.jumpTo(0));
+    textEditingController.clear();
   }
 
   static int SENDING_TYPE = 0;
@@ -735,7 +920,7 @@ class _ChatPageState extends State<ChatPage>{
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('friend'),
+        title: Text(widget.userId),
       ),
       body: Container(
         width: double.infinity,
@@ -761,149 +946,301 @@ class _ChatPageState extends State<ChatPage>{
                   ),
                 ],
               ),
-              child: AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: isRecording
-                    ? AudioWaveforms(
-                  enableGesture: true,
-                  size: Size(
-                      MediaQuery.of(context).size.width / 2,
-                      50),
-                  recorderController: recorderController,
-                  waveStyle: const WaveStyle(
-                    waveColor: Colors.white,
-                    extendWaveform: true,
-                    showMiddleLine: false,
-                  ),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12.0),
-                      color: const Color(0xFF838CFF)
-                  ),
-                  padding: const EdgeInsets.only(left: 18),
-                  margin: const EdgeInsets.symmetric(
-                      horizontal: 15),
-                )
-                  : Row(
+              child: Row(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: <Widget>[
-                    GestureDetector(
-                      onTap: (){
-                        // TODO start record
-                        _startOrStopRecording();
-                      },
-                      onLongPress: (){
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.fromLTRB(5, 0, 0, 10),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: <Widget>[
-                            IconButton(
-                              icon: const Icon(Icons.volume_up),
-                              color: Color(0xFF838CFF),
-                              iconSize: 30, // 调整图标大小
-                              onPressed: () {
-                              },
-                            ),
-                          ],
-                        ),
+                    Container(
+                      padding: const EdgeInsets.fromLTRB(5, 0, 0, 10),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: <Widget>[
+                          IconButton(
+                            icon: Icon(isRecording ? Icons.stop : Icons.mic),
+                            color: Color(0xFF838CFF),
+                            iconSize: 30, // 调整图标大小
+                            onPressed: () {
+                              _startOrStopRecording();
+                            },
+                          ),
+                        ],
                       ),
                     ),
-                    Expanded(
-                      child:Container(
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: isRecording ?
+                      AudioWaveforms(
+                        enableGesture: true,
+                        size: Size(
+                            MediaQuery.of(context).size.width / 1.5,
+                            50),
+                        recorderController: recorderController,
+                        waveStyle: const WaveStyle(
+                          waveColor: Colors.white,
+                          extendWaveform: true,
+                          showMiddleLine: false,
+                        ),
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(12.0),
+                            color: const Color(0xFF838CFF)
+                        ),
+                        padding: const EdgeInsets.only(left: 18),
                         margin: EdgeInsets.fromLTRB(5, 10, 0, 10),
-                        constraints: const BoxConstraints(
-                          maxHeight: 100.0,
-                          minHeight: 50.0,
+                      ) : Container(
+
+                        width:
+                        MediaQuery.of(context).size.width / 2.1,
+                        height: 50,
+                        decoration: BoxDecoration(
+                          color: Color(0xFFF5F6FF),
+                          borderRadius: BorderRadius.all(Radius.circular(2)),
                         ),
-                        decoration: const BoxDecoration(
-                            color:  Color(0xFFF5F6FF),
-                            borderRadius: BorderRadius.all(Radius.circular(2))
-                        ),
-                        child: TextField(
-                          controller: textEditingController,
-                          cursorColor:Color(0xFF464EB5),
-                          maxLines: null,
-                          maxLength: 200,
-                          decoration: const InputDecoration(
-                            counterText: '',
-                            border: InputBorder.none,
-                            contentPadding: EdgeInsets.only(
-                                left: 16.0, right: 16.0, top: 10.0, bottom:10.0),
-                            hintText: "回复",
-                            hintStyle: TextStyle(
-                                color: Color(0xFFADB3BA),
-                                fontSize:15
-                            ),
+                        padding: const EdgeInsets.only(left: 18),
+                        margin: EdgeInsets.fromLTRB(5, 10, 0, 10),
+                          child: TextField(
+                            controller: textEditingController,
+                            cursorColor:Color(0xFF464EB5),
+                            maxLines: null,
+                            maxLength: 200,
+                            decoration: const InputDecoration(
+                              counterText: '',
+                              border: InputBorder.none,
+                              hintText: "回复",
+                              hintStyle: TextStyle(
+                                  color: Color(0xFFADB3BA),
+                                  fontSize:15
+                              ),
+                           ),
                           ),
-                          style: const TextStyle(
-                              color: Color(0xFF03073C),
-                              fontSize:15
-                          ),
-                        ),
                       ),
+                            // Container(
+                            //   margin: EdgeInsets.fromLTRB(5, 10, 0, 10),
+                            //   constraints: const BoxConstraints(
+                            //     maxHeight: 100.0,
+                            //     minHeight: 50.0,
+                            //   ),
+                            //   decoration: const BoxDecoration(
+                            //       color:  Color(0xFFF5F6FF),
+                            //       borderRadius: BorderRadius.all(Radius.circular(2))
+                            //   ),
+                            //   child: TextField(
+                            //     controller: textEditingController,
+                            //     cursorColor:Color(0xFF464EB5),
+                            //     maxLines: null,
+                            //     maxLength: 200,
+                            //     decoration: const InputDecoration(
+                            //       counterText: '',
+                            //       border: InputBorder.none,
+                            //       contentPadding: EdgeInsets.only(
+                            //           left: 16.0, right: 16.0, top: 10.0, bottom:10.0),
+                            //       hintText: "回复",
+                            //       hintStyle: TextStyle(
+                            //           color: Color(0xFFADB3BA),
+                            //           fontSize:15
+                            //       ),
+                            //    ),
+                            //     style: const TextStyle(
+                            //         color: Color(0xFF03073C),
+                            //         fontSize:15
+                            //     ),
+                            //   ),
+                            // ),
                     ),
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          IconButton(
-                            icon: const Icon(Icons.photo),
-                            color: Color(0xFF838CFF),
-                            iconSize: 30, // 调整图标大小
-                            onPressed: () {
-                              // TODO: 添加按钮点击后的操作
-                              addPicture();
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          IconButton(
-                            icon: const Icon(Icons.videocam),
-                            color: Color(0xFF838CFF),
-                            iconSize: 30, // 调整图标大小
-                            onPressed: () {
-                              // TODO: 添加按钮点击后的操作
-                              addVideo();
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
-                    GestureDetector(
-                      behavior: HitTestBehavior.opaque,
-                      child: Container(
+                    if(!isRecording)
+                      Container(
                         padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: <Widget>[
                             IconButton(
-                              icon: const Icon(Icons.send),
+                              icon: const Icon(Icons.photo),
                               color: Color(0xFF838CFF),
-                              iconSize: 26, // 调整图标大小
+                              iconSize: 30, // 调整图标大小
                               onPressed: () {
-                                sendTxt();
+                                addPicture();
                               },
                             ),
                           ],
                         ),
                       ),
-                    ),
+                      if(!isRecording)
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            IconButton(
+                              icon: const Icon(Icons.videocam),
+                              color: Color(0xFF838CFF),
+                              iconSize: 30, // 调整图标大小
+                              onPressed: () {
+                                // TODO: 添加按钮点击后的操作
+                                addVideo();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    if(!isRecording)
+                      GestureDetector(
+                        behavior: HitTestBehavior.opaque,
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: <Widget>[
+                              IconButton(
+                                icon: const Icon(Icons.send),
+                                color: Color(0xFF838CFF),
+                                iconSize: 26, // 调整图标大小
+                                onPressed: () {
+                                  sendTxt();
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    if(isRecording)
+                      Container(
+                        padding: const EdgeInsets.fromLTRB(0, 0, 0, 10),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: <Widget>[
+                            IconButton(
+                              icon: const Icon(Icons.restart_alt),
+                              color: Color(0xFF838CFF),
+                              iconSize: 30, // 调整图标大小
+                              onPressed: () {
+                                // TODO: 重新录制
+                                _refreshWave();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
                   ],
-                )
-
               )
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+
+class _ControlsOverlay extends StatelessWidget {
+  const _ControlsOverlay({required this.controller});
+
+  static const List<Duration> _exampleCaptionOffsets = <Duration>[
+    Duration(seconds: -10),
+    Duration(seconds: -3),
+    Duration(seconds: -1, milliseconds: -500),
+    Duration(milliseconds: -250),
+    Duration.zero,
+    Duration(milliseconds: 250),
+    Duration(seconds: 1, milliseconds: 500),
+    Duration(seconds: 3),
+    Duration(seconds: 10),
+  ];
+  static const List<double> _examplePlaybackRates = <double>[
+    0.25,
+    0.5,
+    1.0,
+    1.5,
+    2.0,
+    3.0,
+    5.0,
+    10.0,
+  ];
+
+  final VideoPlayerController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: <Widget>[
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 50),
+          reverseDuration: const Duration(milliseconds: 200),
+          child: controller.value.isPlaying
+              ? const SizedBox.shrink()
+              : const ColoredBox(
+            color: Colors.black26,
+            child: Center(
+              child: Icon(
+                Icons.play_arrow,
+                color: Colors.white,
+                size: 100.0,
+                semanticLabel: 'Play',
+              ),
+            ),
+          ),
+        ),
+        GestureDetector(
+          onTap: () {
+            controller.value.isPlaying ? controller.pause() : controller.play();
+          },
+        ),
+        Align(
+          alignment: Alignment.topLeft,
+          child: PopupMenuButton<Duration>(
+            initialValue: controller.value.captionOffset,
+            tooltip: 'Caption Offset',
+            onSelected: (Duration delay) {
+              controller.setCaptionOffset(delay);
+            },
+            itemBuilder: (BuildContext context) {
+              return <PopupMenuItem<Duration>>[
+                for (final Duration offsetDuration in _exampleCaptionOffsets)
+                  PopupMenuItem<Duration>(
+                    value: offsetDuration,
+                    child: Text('${offsetDuration.inMilliseconds}ms'),
+                  )
+              ];
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                // Using less vertical padding as the text is also longer
+                // horizontally, so it feels like it would need more spacing
+                // horizontally (matching the aspect ratio of the video).
+                vertical: 12,
+                horizontal: 16,
+              ),
+              child: Text('${controller.value.captionOffset.inMilliseconds}ms'),
+            ),
+          ),
+        ),
+        Align(
+          alignment: Alignment.topRight,
+          child: PopupMenuButton<double>(
+            initialValue: controller.value.playbackSpeed,
+            tooltip: 'Playback speed',
+            onSelected: (double speed) {
+              controller.setPlaybackSpeed(speed);
+            },
+            itemBuilder: (BuildContext context) {
+              return <PopupMenuItem<double>>[
+                for (final double speed in _examplePlaybackRates)
+                  PopupMenuItem<double>(
+                    value: speed,
+                    child: Text('${speed}x'),
+                  )
+              ];
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                // Using less vertical padding as the text is also longer
+                // horizontally, so it feels like it would need more spacing
+                // horizontally (matching the aspect ratio of the video).
+                vertical: 12,
+                horizontal: 16,
+              ),
+              child: Text('${controller.value.playbackSpeed}x'),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

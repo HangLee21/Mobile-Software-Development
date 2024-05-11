@@ -1,10 +1,11 @@
 import 'dart:io';
 
 import 'package:audio_waveforms/audio_waveforms.dart';
-import 'chat_bubble.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+
+import '../components/chat_bubble.dart';
 
 void main() => runApp(const MyApp());
 
@@ -76,7 +77,6 @@ class _HomeState extends State<Home> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,12 +110,12 @@ class _HomeState extends State<Home> {
               child: ListView.builder(
                 itemCount: 4,
                 itemBuilder: (_, index) {
-                  return WaveBubble(
-                    index: index + 1,
-                    isSender: index.isOdd,
-                    width: MediaQuery.of(context).size.width / 2,
-                    appDirectory: appDirectory,
-                  );
+                  // return WaveBubble(
+                  //   : index + 1,
+                  //   isSender: index.isOdd,
+                  //   width: MediaQuery.of(context).size.width / 2,
+                  //   appDirectory: appDirectory,
+                  // );
                 },
               ),
             ),

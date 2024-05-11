@@ -11,14 +11,12 @@ import '../storage/notificationInfo_storage.dart';
 class WebSocketService extends ChangeNotifier{
   static final WebSocketService _instance = WebSocketService._internal();
   factory WebSocketService() => _instance;
-  static  List<String> _messages_text = <String>[];
-  static List<Message> _messages = <Message>[];
-  static List<NotificationInfo> _notificationInfos = <NotificationInfo>[];
-  StreamController<String> _messageController = StreamController.broadcast();
+
   WebSocketService._internal();
   final notificationStorage = NotificationStorage();
 
   IOWebSocketChannel? _channel;
+  StreamController<String> _messageController = StreamController.broadcast();
   Stream<dynamic>? get stream => _messageController.stream;
 
   void connect(String userId) {
@@ -36,7 +34,6 @@ class WebSocketService extends ChangeNotifier{
       info_num: 1,
       time: message1.time
     )).then((value){
-      print("saved");
       _messageController.add(message);
       notifyListeners(); // 通知监听者，有新的消息
     });
@@ -50,8 +47,6 @@ class WebSocketService extends ChangeNotifier{
       throw "Connection is not established";
     }
   }
-
-
 
   IOWebSocketChannel? get channel => _channel;
 

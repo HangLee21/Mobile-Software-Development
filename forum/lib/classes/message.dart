@@ -22,7 +22,7 @@ class Message {
   factory Message.fromString(String messageString) {
     // 使用正则表达式提取消息中的各个字段
     print(messageString);
-    final RegExp regExp = RegExp(r"Message\(messageId=(\w+), senderId=(\w+), receiverId=(\w+), content=(.*), time=(.*), ownerId=(\w+)\)");
+    final RegExp regExp = RegExp(r"Message\(messageId=(.+), senderId=(.+), receiverId=(\w+), content=(.*), time=(.*), ownerId=(\w+)\)");
     final match = regExp.firstMatch(messageString);
     if (match != null) {
       final messageId = match.group(1)!;

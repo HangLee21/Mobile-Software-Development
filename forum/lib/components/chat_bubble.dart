@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:forum/url/user.dart';
 
 class ChatBubble extends StatelessWidget {
   final String text;
@@ -50,7 +51,7 @@ class ChatBubble extends StatelessWidget {
 
 class WaveBubble extends StatefulWidget {
   final bool isSender;
-  final int? index;
+  final String? filename;
   final String? path;
   final double? width;
   final Directory appDirectory;
@@ -59,7 +60,7 @@ class WaveBubble extends StatefulWidget {
     Key? key,
     required this.appDirectory,
     this.width,
-    this.index,
+    this.filename,
     this.isSender = false,
     this.path,
   }) : super(key: key);
@@ -92,23 +93,21 @@ class _WaveBubbleState extends State<WaveBubble> {
 
   void _preparePlayer() async {
     // Opening file from assets folder
-    if (widget.index != null) {
-      file = File('${widget.appDirectory.path}/audio${widget.index}.mp3');
-      await file?.writeAsBytes(
-          (await rootBundle.load('assets/audios/audio${widget.index}.mp3'))
-              .buffer
-              .asUint8List());
+    if(widget.filename == ''){
+      return;
     }
-    if (widget.index == null && widget.path == null && file?.path == null) {
+    file = File('${widget.appDirectory.path}/${widget.filename}');
+    if(!checkFileExists('${widget.appDirectory.path}/${widget.filename}')){
+      debugPrint('File does not exist');
       return;
     }
     // Prepare player with extracting waveform if index is even.
     controller.preparePlayer(
       path: widget.path ?? file!.path,
-      shouldExtractWaveform: widget.index?.isEven ?? true,
+      shouldExtractWaveform: !widget.isSender,
     );
     // Extracting waveform separately if index is odd.
-    if (widget.index?.isOdd ?? false) {
+    if (widget.isSender) {
       controller
           .extractWaveformData(
         path: widget.path ?? file!.path,
@@ -169,7 +168,7 @@ class _WaveBubbleState extends State<WaveBubble> {
             AudioFileWaveforms(
               size: Size(MediaQuery.of(context).size.width / 2, 70),
               playerController: controller,
-              waveformType: widget.index?.isOdd ?? false
+              waveformType: widget.isSender
                   ? WaveformType.fitWidth
                   : WaveformType.long,
               playerWaveStyle: playerWaveStyle,
