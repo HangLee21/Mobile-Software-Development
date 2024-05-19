@@ -67,15 +67,12 @@ class _NotificationState extends State<NotificationPage>{
         Message message1 = Message.fromString(message);
         _messages.add(message1);
         String key = message1.senderId;
-        print(key);
         int info_num = 0;
         // 检查是否存在键
         if (_notificationInfos.containsKey(key)) {
           // 如果存在，则获取现有的 NotificationInfo 对象
           NotificationInfo? existingInfo = _notificationInfos[key];
-          print(existingInfo);
           info_num = existingInfo!.info_num + 1;
-          print(info_num);
           _notificationInfos[message1.senderId] = NotificationInfo(
             friendId: message1.senderId,
             time: message1.time,
@@ -112,15 +109,25 @@ class _NotificationState extends State<NotificationPage>{
   Widget build(BuildContext context) {
 
     if(cards.values.isNotEmpty) {
-      return ListView.builder(
-          itemCount: cards.length,
-          itemBuilder: (context, index){
-            return cards.values.elementAt(index);
-          }
+      return Scaffold(
+        appBar: AppBar(
+
+        ),
+        body: ListView.builder(
+            itemCount: cards.length,
+            itemBuilder: (context, index){
+              return cards.values.elementAt(index);
+            }
+        ),
       );
     } else {
-      return const Center(
-        child: Text('No notifications'),
+      return Scaffold(
+        appBar: AppBar(
+
+        ),
+        body: Center(
+          child: Text('No notifications'),
+        ),
       );
     }
   }

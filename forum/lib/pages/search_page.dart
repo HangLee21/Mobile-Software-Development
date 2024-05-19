@@ -105,7 +105,7 @@ class _SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMi
       appBar: AppBar(
         toolbarHeight: 100,
         title: Padding(
-          padding: const EdgeInsets.fromLTRB(5, 10, 40, 10),
+          padding: const EdgeInsets.fromLTRB(5, 10, 45, 10),
           child: SearchBar(
             controller: _searchController,
             padding: const MaterialStatePropertyAll<EdgeInsets>(

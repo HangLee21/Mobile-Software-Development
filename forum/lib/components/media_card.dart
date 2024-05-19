@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:forum/constants.dart';
 
+import '../pages/signup.dart';
+
 const _horizontalPadding = 32.0;
 const _horizontalDesktopPadding = 81.0;
 const _carouselHeightMin = 200.0;
@@ -94,6 +96,7 @@ class CarouselCard extends StatelessWidget {
                     // Navigator.of(context)
                     //     .popUntil((route) => route.settings.name == '/');
                     // Navigator.of(context).restorablePushNamed(studyRoute);
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => SignupLayout()));
                   },
                 ),
               ),

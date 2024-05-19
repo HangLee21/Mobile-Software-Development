@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:forum/classes/localStorage.dart';
+import 'package:forum/pages/ActivityPage.dart';
 import 'package:forum/pages/account.dart';
 import 'package:forum/pages/notification.dart';
 import 'package:forum/theme/theme_data.dart';
@@ -34,7 +35,7 @@ class _NavigationExampleState extends State<NavigationExample> {
           ),
         ),
       ),
-      NotificationPage(),
+      ActivityPage(),
       AccountPage()
     ];
   }
@@ -104,9 +105,9 @@ class _NavigationExampleState extends State<NavigationExample> {
             label: '主页',
           ),
           NavigationDestination(
-            selectedIcon: Icon(Icons.chat_bubble),
-            icon: Icon(Icons.chat_bubble_outline),
-            label: '消息',
+            selectedIcon: Icon(Icons.local_activity),
+            icon: Icon(Icons.local_activity_outlined),
+            label: '动态',
           ),
           NavigationDestination(
             selectedIcon: Icon(Icons.account_circle),

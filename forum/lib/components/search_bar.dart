@@ -3,7 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:forum/classes/localStorage.dart';
 import 'package:http/http.dart';
+import '../classes/notification_card.dart';
+import '../pages/notification.dart';
 import '../pages/search_page.dart';
+import '../storage/notificationInfo_storage.dart';
 import '../theme/theme_data.dart';
 import '../url/user.dart';
 /// Flutter code sample for [SearchBar].
@@ -17,9 +20,9 @@ class SearchBarApp extends StatefulWidget {
 }
 
 class _SearchBarAppState extends State<SearchBarApp> {
-
+  Map<String, NotificationInfo> _notificationInfos = {};
   late SearchController _searchController;
-
+  int info_num = 0;
   @override
   void initState() {
     super.initState();
@@ -32,6 +35,15 @@ class _SearchBarAppState extends State<SearchBarApp> {
     _searchController.removeListener(_onQueryChanged);
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _initNotifications(){
+    NotificationStorage().loadNotifications().then((value) => setState(() {
+      _notificationInfos = value;
+      for(var info in _notificationInfos.values){
+        info_num += info.info_num;
+      }
+    }));
   }
 
   void _onQueryChanged() {
@@ -105,21 +117,24 @@ class _SearchBarAppState extends State<SearchBarApp> {
         Positioned(
           top: 32,
           right: 1,
-          child: FloatingActionButton(
-            foregroundColor: colorScheme.secondary,
-            backgroundColor: colorScheme.background,
-            onPressed: () {
-              // Add your onPressed code here!
-              // TODO
-            },
-            child: IconTheme(
-              data: IconThemeData(
-                size: 30.0, // 设置图标大小为40.0
-                color: colorScheme.primary,
+          child: Badge(
+            label: Text('${info_num}', style: TextStyle(color: colorScheme.primary)),
+            isLabelVisible: info_num > 0,
+            child: FloatingActionButton(
+              foregroundColor: colorScheme.secondary,
+              backgroundColor: colorScheme.background,
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => NotificationPage()));
+              },
+              child: IconTheme(
+                data: IconThemeData(
+                  size: 30.0, // 设置图标大小为40.0
+                  color: colorScheme.primary,
+                ),
+                child: Icon(Icons.mail),
               ),
-              child: Icon(Icons.mail),
             ),
-          ),
+          )
         ),
       ],
     );

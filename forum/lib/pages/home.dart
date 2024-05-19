@@ -20,6 +20,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
   List<CarouselCard> cards = [
+    // CarouselCard(postId: 'chl', title: 'title', content: 'content', card_height: 100, asset: NetworkImage('https://img-blog.csdnimg.cn/fcc22710385e4edabccf2451d5f64a99.jpeg'))
   ];
 
   List<ContentCard> content_cards = [
@@ -28,8 +29,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   @override
   void initState(){
     super.initState();
+    //getRecommendWorks();
     getSingleChildScrollView();
-    getRecommendWorks();
   }
 
   // void initSharedPreference() async{
@@ -47,9 +48,12 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
           String decodedString1 = utf8.decode(res.bodyBytes);
           List posts = jsonDecode(decodedString1)['posts'];
           for( var post in posts){
-            print(post);
-            cards.add(CarouselCard(postId: post['postId'], title: post['title'], content: post['content'], card_height: 200, asset: NetworkImage(post['urls'][0])),);
+            if(post['urls'][0] != ''){
+              cards.add(CarouselCard(postId: post['postId'], title: post['title'], content: post['content'], card_height: 100, asset: NetworkImage(post['urls'][0])));
+            }
           }
+          print(cards);
+          print('cards end');
           setState(() {
 
           });
