@@ -49,7 +49,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       print(LocalStorage.getString('token'));
       print(res.statusCode);
       if(res.statusCode == 200){
-        List posts = json.decode(res.body)['posts'];
+        String decodedString1 = utf8.decode(res.bodyBytes);
+        List posts = json.decode(decodedString1)['posts'];
         content_cards.clear();
         for(var i in posts){
           requestGet('/api/user/get_user',
@@ -59,7 +60,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                 'userId': i['userId']
               }).then((http.Response res2){
                 if(res2.statusCode == 200) {
-                  Map body = json.decode(res2.body)['content'];
+                  String decodedString2 = utf8.decode(res2.bodyBytes);
+                  Map body = jsonDecode(decodedString2) as Map;
                   print(i['title']);
                   print(i['content']);
                   print(i['postId']);
