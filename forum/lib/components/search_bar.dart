@@ -1,5 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:forum/classes/localStorage.dart';
+import 'package:http/http.dart';
+import '../classes/notification_card.dart';
+import '../pages/notification.dart';
+import '../pages/search_page.dart';
+import '../storage/notificationInfo_storage.dart';
 import '../theme/theme_data.dart';
+import '../url/user.dart';
 /// Flutter code sample for [SearchBar].
 
 
@@ -11,7 +20,48 @@ class SearchBarApp extends StatefulWidget {
 }
 
 class _SearchBarAppState extends State<SearchBarApp> {
-  bool isDark = false;
+  Map<String, NotificationInfo> _notificationInfos = {};
+  late SearchController _searchController;
+  int info_num = 0;
+  @override
+  void initState() {
+    super.initState();
+    _searchController = SearchController();
+    _searchController.addListener(_onQueryChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onQueryChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _initNotifications(){
+    NotificationStorage().loadNotifications().then((value) => setState(() {
+      _notificationInfos = value;
+      for(var info in _notificationInfos.values){
+        info_num += info.info_num;
+      }
+    }));
+  }
+
+  void _onQueryChanged() {
+    if (_searchController.value.text.isNotEmpty) {
+      // Assuming that the user submits with the 'Enter' key
+      // This is a simple workaround, better logic might be needed based on your requirements
+      if (_searchController.value.text.endsWith('\n')) {
+        final query = _searchController.value.text.trim();
+        performSearch(query);
+      }
+    }
+  }
+
+  void performSearch(String query) {
+    // Do something with the query, e.g., execute the search
+    print('Search submitted: $query');
+    Navigator.of(context).push(MaterialPageRoute(builder: (context) => SearchPage(query: query)));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,62 +76,65 @@ class _SearchBarAppState extends State<SearchBarApp> {
           child: GestureDetector(
               onTap: () {
                 // 处理用户头像点击事件
+                // TODO
                 print('User avatar clicked!');
               },
               child: CircleAvatar(
                 radius: 25.0, // 设置半径为50.0，调整大小
-                child: const Text('AH'),
+                foregroundImage: NetworkImage(LocalStorage.getString('userAvatar')??'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png'),
               )
           ),
         ),
         Padding(
           padding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 65.0),
-          child: SearchAnchor(
-              builder: (BuildContext context, SearchController controller) {
-                return SearchBar(
-                  controller: controller,
-                  padding: const MaterialStatePropertyAll<EdgeInsets>(
-                      EdgeInsets.symmetric(horizontal: 16.0)),
-                  onTap: () {
-                    controller.openView();
+          child: SearchBar(
+            // TODO
+            controller: _searchController,
+            padding: const MaterialStatePropertyAll<EdgeInsets>(
+                EdgeInsets.symmetric(horizontal: 16.0)),
+            onTap: () {
+
+            },
+            onSubmitted: (value) {
+              performSearch(value);
+            },
+            leading: const Icon(Icons.search),
+            trailing: <Widget>[
+              Tooltip(
+                message: 'Clear content',
+                child: IconButton(
+                  onPressed: () {
+                    setState(() {
+                        _searchController.clear();
+                    });
                   },
-                  onChanged: (_) {
-                    controller.openView();
-                  },
-                  leading: const Icon(Icons.search),
-                );
-              }, suggestionsBuilder:
-              (BuildContext context, SearchController controller) {
-            return List<ListTile>.generate(0, (int index) {
-              final String item = 'item $index';
-              return ListTile(
-                title: Text(item),
-                onTap: () {
-                  setState(() {
-                    controller.closeView(item);
-                  });
-                },
-              );
-            });
-          }),
+                  icon: const Icon(Icons.clear),
+                ),
+              )
+            ],
+          ),
         ),
         Positioned(
           top: 32,
           right: 1,
-          child: FloatingActionButton(
-            foregroundColor: colorScheme.secondary,
-            backgroundColor: colorScheme.background,
-            onPressed: () {
-              // Add your onPressed code here!
-            },
-            child: IconTheme(
-              data: IconThemeData(
-                size: 30.0, // 设置图标大小为40.0
-                color: colorScheme.primary,
+          child: Badge(
+            label: Text('${info_num}', style: TextStyle(color: colorScheme.primary)),
+            isLabelVisible: info_num > 0,
+            child: FloatingActionButton(
+              foregroundColor: colorScheme.secondary,
+              backgroundColor: colorScheme.background,
+              onPressed: () {
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => NotificationPage()));
+              },
+              child: IconTheme(
+                data: IconThemeData(
+                  size: 30.0, // 设置图标大小为40.0
+                  color: colorScheme.primary,
+                ),
+                child: Icon(Icons.mail),
               ),
-              child: Icon(Icons.mail),
             ),
-          ),
+          )
         ),
       ],
     );

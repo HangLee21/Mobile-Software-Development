@@ -1,8 +1,17 @@
+import 'dart:async';
+
+import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:forum/classes/localStorage.dart';
+import 'package:forum/pages/ActivityPage.dart';
 import 'package:forum/pages/account.dart';
 import 'package:forum/pages/notification.dart';
 import 'package:forum/theme/theme_data.dart';
 import 'package:forum/pages/home.dart';
+
+import '../classes/message.dart';
+import '../components/notificationcard.dart';
+import '../url/websocket_service.dart';
 
 class NavigationExample extends StatefulWidget {
   const NavigationExample({super.key});
@@ -12,7 +21,7 @@ class NavigationExample extends StatefulWidget {
 
 class _NavigationExampleState extends State<NavigationExample> {
   int currentPageIndex = 0;
-
+  final _websocketService = WebSocketService();
   var _pageController = PageController();
   var _pages;
   void initData() {
@@ -26,11 +35,54 @@ class _NavigationExampleState extends State<NavigationExample> {
           ),
         ),
       ),
-      NotificationPage(),
+      ActivityPage(),
       AccountPage()
     ];
   }
   int _tabIndex = 0;
+  StreamSubscription<dynamic>? _streamSubscription;
+  @override
+  void initState(){
+    super.initState();
+    _streamSubscription = _websocketService.stream!.listen((message) async {
+      setState(() {
+        Message message1 = Message.fromString(message);
+        if(LocalStorage.getString('currentUserId') == null){
+// 定义正则表达式模式
+          RegExp regex = RegExp(r'\((.*?)\)\[(.*?)\]');
+          //print('content: '+ item['content']);
+          Match? match = regex.firstMatch(message1.content);
+          String content = message1.content;
+          // 检查是否匹配成功
+          if (match != null) {
+            content = '暂不支持的消息格式，请跳转页面详细观看内容';
+          }
+          AnimatedSnackBar(
+            duration: Duration(seconds: 4),
+            builder: ((context) {
+              return NotificationCard(
+                friendname: message1.senderId,
+                content: content,
+                url: '',
+                friendId: message1.senderId,
+                info_num: 0,
+                remove: false,
+                onPressed: () {
+                },
+              );
+            }),
+          ).show(context);
+        }
+      });
+    });
+
+  }
+
+  @override
+  void dispose(){
+    super.dispose();
+    _streamSubscription?.cancel();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,9 +105,9 @@ class _NavigationExampleState extends State<NavigationExample> {
             label: '主页',
           ),
           NavigationDestination(
-            selectedIcon: Icon(Icons.chat_bubble),
-            icon: Icon(Icons.chat_bubble_outline),
-            label: '消息',
+            selectedIcon: Icon(Icons.local_activity),
+            icon: Icon(Icons.local_activity_outlined),
+            label: '动态',
           ),
           NavigationDestination(
             selectedIcon: Icon(Icons.account_circle),

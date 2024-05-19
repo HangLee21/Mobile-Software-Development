@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:forum/constants.dart';
+import 'package:forum/pages/postpage.dart';
 
 import '../pages/signup.dart';
 
@@ -92,11 +93,8 @@ class CarouselCard extends StatelessWidget {
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: () {
-                    // TODO change route
-                    // Navigator.of(context)
-                    //     .popUntil((route) => route.settings.name == '/');
-                    // Navigator.of(context).restorablePushNamed(studyRoute);
-                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => SignupLayout()));
+
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => PostPage(postId)));
                   },
                 ),
               ),

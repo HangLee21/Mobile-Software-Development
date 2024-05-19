@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:forum/classes/notification_card.dart';
 import 'package:forum/storage/notificationInfo_storage.dart';
@@ -18,6 +20,7 @@ class _NotificationState extends State<NotificationPage>{
   Map<String, NotificationCard> cards = {};
   Map<String, NotificationInfo> _notificationInfos = {};
   List<Message> _messages = <Message>[];
+  StreamSubscription<dynamic>? _streamSubscription;
   @override
   void initState(){
     super.initState();
@@ -55,7 +58,11 @@ class _NotificationState extends State<NotificationPage>{
         );
       }
     }));
-    _websocketService.stream?.listen((message) async {
+  }
+
+  void init() async{
+    _initNotifications();
+    _streamSubscription = _websocketService.stream?.listen((message) async {
       setState(() {
         Message message1 = Message.fromString(message);
         _messages.add(message1);
@@ -93,23 +100,34 @@ class _NotificationState extends State<NotificationPage>{
     });
   }
 
-  void init() async{
-    _initNotifications();
+  void dispose(){
+    _streamSubscription?.cancel();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
 
     if(cards.values.isNotEmpty) {
-      return ListView.builder(
-          itemCount: cards.length,
-          itemBuilder: (context, index){
-            return cards.values.elementAt(index);
-          }
+      return Scaffold(
+        appBar: AppBar(
+
+        ),
+        body: ListView.builder(
+            itemCount: cards.length,
+            itemBuilder: (context, index){
+              return cards.values.elementAt(index);
+            }
+        ),
       );
     } else {
-      return const Center(
-        child: Text('No notifications'),
+      return Scaffold(
+        appBar: AppBar(
+
+        ),
+        body: Center(
+          child: Text('No notifications'),
+        ),
       );
     }
   }

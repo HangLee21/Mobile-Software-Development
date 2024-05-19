@@ -12,6 +12,7 @@ import 'package:forum/pages/login.dart';
 import 'package:forum/url/user.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../url/websocket_service.dart';
 import 'navigation.dart';
 import 'dart:developer' as developer;
 
@@ -28,6 +29,7 @@ class SettingsState extends State<Settings>{
   String email = '';
   int imageNumber = 0;
   SharedPreferences? sharedPreferences;
+  final _websocketService = WebSocketService();
   @override
   void initState(){
     super.initState();
@@ -245,7 +247,12 @@ class SettingsState extends State<Settings>{
             const SizedBox(height: 20,),
             ElevatedButton(onPressed: (){
               print('clear1: ${LocalStorage.getString('token')}');
-              sharedPreferences?.clear();
+              sharedPreferences?.remove('token');
+              sharedPreferences?.remove('userName');
+              sharedPreferences?.remove('userId');
+              sharedPreferences?.remove('userAvatar');
+              sharedPreferences?.remove('userEmail');
+              _websocketService.close();
               print('clear2: ${LocalStorage.getString('token')}');
               Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => LoginLayout()), (route) => false);
             }, child: Text('退出登录'))

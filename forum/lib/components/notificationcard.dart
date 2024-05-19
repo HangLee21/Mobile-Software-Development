@@ -12,14 +12,24 @@ class NotificationCard extends StatelessWidget{
   final String friendname;
   final String? content;
   final String? avatarurl;
+  bool? remove = false;
   final String friendId;
   final String url;
   final int info_num;
   final VoidCallback onPressed;
-  NotificationCard({super.key, required this.friendname, this.content, required this.url, this.avatarurl, required this.friendId, required this.info_num, required this.onPressed});
+  NotificationCard({super.key, required this.friendname, this.content, required this.url, this.avatarurl, required this.friendId, required this.info_num, required this.onPressed, this.remove});
 
   @override
   Widget build(BuildContext context){
+    void pushPage(){
+      if(remove == true){
+        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => ChatPage(userId: friendId))).then((value) => onPressed());
+      }
+      else{
+        Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChatPage(userId: friendId))).then((value) => onPressed());
+      }
+    }
+
     return Card(
       child: Container(
         height: 80,
@@ -33,9 +43,7 @@ class NotificationCard extends StatelessWidget{
                   info_num: 0,
                   time: notification.time
                 )).then((value) => {
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChatPage(userId: friendId))).then((value) => {
-                    onPressed()
-                  })
+                  pushPage()
                 })
               }});
           },

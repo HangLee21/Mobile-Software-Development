@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import '../constants.dart';
 import 'package:http/http.dart' as http;
 import 'dart:developer' as developer;
@@ -65,4 +66,23 @@ Future<http.Response> requestDelete( pathname,Map body, Map<String, String> head
   }
   var res = await http.delete(Uri.parse(url),body: json.encode(body), headers: headers);
   return res;
+}
+
+void downloadFile(String url, String savePath) {
+  try {
+    // 发起 HTTP GET 请求获取文件内容
+    http.get(Uri.parse(url)).then((value) => {
+      // 将文件内容写入到文件中
+      File(savePath).writeAsBytes(value.bodyBytes)
+    });
+  } catch (e) {
+    // 捕获异常，打印错误信息
+    print('Error downloading file: $e');
+  }
+}
+
+bool checkFileExists(String filePath) {
+  File file = File(filePath);
+  bool exists = file.existsSync();
+  return exists;
 }

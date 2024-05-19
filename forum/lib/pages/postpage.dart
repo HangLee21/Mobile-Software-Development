@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:forum/classes/localStorage.dart';
 import 'package:forum/components/carousel.dart';
 import 'package:forum/components/commentcard.dart';
 import 'package:forum/url/user.dart';
@@ -81,7 +82,7 @@ class _PostState extends State<PostPage>{
   }
   void getComments() async{
     requestGet('/api/cos/post/query_comments', {
-      'Authorization': 'Bear ${sharedPreferences?.getString('token')}'
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
     },query: {
       'postId': widget.postId,
     }).then((http.Response res){
@@ -92,14 +93,14 @@ class _PostState extends State<PostPage>{
           comments.clear();
           for(Map comment in _comments){
             requestGet('/api/user/get_user', {
-              'Authorization': 'Bear ${sharedPreferences?.getString('token')}'
+              'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
             },query: {
               'userId': comment['commentUserId'],
             }).then((http.Response res2) {
               if(res2.statusCode == 200) {
                 print('2002');
                 requestGet('/api/info/comment/get_info', {
-                  'Authorization': 'Bear ${sharedPreferences?.getString('token')}'
+                  'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
                 },query: {
                   'userId': comment['commentUserId'],
                 }).then((http.Response res3) {

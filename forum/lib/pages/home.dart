@@ -44,14 +44,14 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   void _fetchList()async{
     getRecommendWorks().then((result){
       setState(() {
-        print('setState');
+        // print('setState');
         content_cards = result;
       });
     });
     getSingleChildScrollView().then((result){
       setState(() {
-        print('setState');
-        print('result:${result}');
+        // print('setState');
+        // print('result:${result}');
         cards = result;
       });
     });
@@ -63,21 +63,21 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   Future<List<CarouselCard>> getSingleChildScrollView()async{
     List<CarouselCard> _cards = cards;
     await requestGet('/api/cos/community/recommend_works_with_urls',
-      {
-        'Authorization': 'Bearer ${LocalStorage.getString('token') ?? '43432'}',
-      },query: {
+        {
+          'Authorization': 'Bearer ${LocalStorage.getString('token') ?? '43432'}',
+        },query: {
           'maxNum': '10'
-      }).then((http.Response res) {
-        if(res.statusCode == 200) {
-          String decodedString1 = utf8.decode(res.bodyBytes);
-          List posts = jsonDecode(decodedString1)['posts'];
-          for(var post in posts){
-            _cards.add(CarouselCard(postId: post['postId'], title: post['title'], content: post['content'], card_height: 200, asset: NetworkImage('https://android-1324918669.cos.ap-beijing.myqcloud.com/23c396f7b5f58d25/0123testtest1616/Materials/0.png')));
-          }
-          return _cards;
+        }).then((http.Response res) {
+      if(res.statusCode == 200) {
+        String decodedString1 = utf8.decode(res.bodyBytes);
+        List posts = jsonDecode(decodedString1)['posts'];
+        for(var post in posts){
+          _cards.add(CarouselCard(postId: post['postId'], title: post['title'], content: post['content'], card_height: 240, asset: NetworkImage('https://android-1324918669.cos.ap-beijing.myqcloud.com/23c396f7b5f58d25/0123testtest1616/Materials/0.png')));
         }
         return _cards;
       }
+      return _cards;
+    }
     );
     return _cards;
   }
@@ -100,14 +100,14 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
               },query: {
                 'userId': i['userId']
               }).then((http.Response res2){
-                if(res2.statusCode == 200) {
-                  String decodedString2 = utf8.decode(res2.bodyBytes);
-                  Map body = jsonDecode(decodedString2) as Map;
-                  ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['userAvatar'],username: body['userName'],);
-                  _content_cards.add(card);
-                  return _content_cards;
-                }
-                return _content_cards;
+            if(res2.statusCode == 200) {
+              String decodedString2 = utf8.decode(res2.bodyBytes);
+              Map body = jsonDecode(decodedString2) as Map;
+              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['userAvatar'],username: body['userName'],);
+              _content_cards.add(card);
+              return _content_cards;
+            }
+            return _content_cards;
           });
         }
       }
@@ -123,28 +123,28 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     // getSingleChildScrollView();
     return Scaffold(
       body: Center(
-          child: SizedBox(
-              height: double.infinity,
-              child: Column(
-                children: [
-                  const SearchBarApp(),
-                  Expanded(
-                    child: SingleChildScrollView(
+        child: SizedBox(
+            height: double.infinity,
+            child: Column(
+              children: [
+                const SearchBarApp(),
+                Expanded(
+                  child: SingleChildScrollView(
                     child:
-                      Column(
-                        children: [
-                          SizedBox(
-                              height: 300.0,
-                              child: autoswitchpageview
-                          ),
-                          CardList(cards: content_cards,)
-                        ],
-                      ),
+                    Column(
+                      children: [
+                        SizedBox(
+                            height: 300.0,
+                            child: autoswitchpageview
+                        ),
+                        CardList(cards: content_cards,)
+                      ],
                     ),
                   ),
-                ],
-              )
-          ),
+                ),
+              ],
+            )
+        ),
 
       ),
       floatingActionButton: FloatingActionButton(
