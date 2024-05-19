@@ -34,11 +34,10 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     // Future.delayed(Duration(milliseconds: 10),(){
     //   getRecommendWorks();
     // });
-    z
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _fetchList();
       autoswitchpageview = AutoSwitchPageView(cards: cards==[]?[CarouselCard(postId: 'chl', title: 'title', content: 'content', card_height: 100, asset: NetworkImage('https://img-blog.csdnimg.cn/fcc22710385e4edabccf2451d5f64a99.jpeg'))]:cards);
     });
-
-
   }
 
 
