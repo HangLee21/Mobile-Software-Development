@@ -32,12 +32,37 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     // Future.delayed(Duration(milliseconds: 10),(){
     //   getRecommendWorks();
     // });
+    getSingleChildScrollView();
     getRecommendWorks();
   }
 
   // void initSharedPreference() async{
   //   sharedPreferences = await SharedPreferences.getInstance();
   // }
+
+  void getSingleChildScrollView()async{
+    requestGet('/api/cos/community/recommend_works_with_urls',
+      {
+        'Authorization': 'Bearer ${LocalStorage.getString('token') ?? '43432'}',
+      },query: {
+          'maxNum': '10'
+      }).then((http.Response res) {
+        if(res.statusCode == 200) {
+          String decodedString1 = utf8.decode(res.bodyBytes);
+          List posts = jsonDecode(decodedString1)['posts'];
+          print('cards start');
+          for( var post in posts){
+            print(post);
+            cards = [...cards, CarouselCard(postId: post['postId'], title: post['title'], content: post['content'], card_height: 200)];
+          }
+          print('cards end');
+          setState(() {
+
+          });
+        }
+      }
+    );
+  }
 
   void getRecommendWorks() async{
     requestGet('/api/cos/community/recommend_works', {

@@ -17,7 +17,7 @@ class CarouselCard extends StatelessWidget {
     this.assetColor,
     this.assetDarkColor,
     this.textColor,
-    required this.studyRoute,
+    required this.postId,
     required this.title,
     required this.content,
     required this.card_height,
@@ -28,7 +28,7 @@ class CarouselCard extends StatelessWidget {
   final Color? assetColor;
   final Color? assetDarkColor;
   final Color? textColor;
-  final String studyRoute;
+  final String postId;
   final String title;
   final String content;
   final double card_height;
@@ -91,9 +91,9 @@ class CarouselCard extends StatelessWidget {
                 child: InkWell(
                   onTap: () {
                     // TODO change route
-                    Navigator.of(context)
-                        .popUntil((route) => route.settings.name == '/');
-                    Navigator.of(context).restorablePushNamed(studyRoute);
+                    // Navigator.of(context)
+                    //     .popUntil((route) => route.settings.name == '/');
+                    // Navigator.of(context).restorablePushNamed(studyRoute);
                   },
                 ),
               ),
