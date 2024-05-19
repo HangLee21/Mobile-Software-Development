@@ -20,11 +20,12 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
   List<CarouselCard> cards = [
-    // CarouselCard(postId: 'chl', title: 'title', content: 'content', card_height: 100, asset: NetworkImage('https://img-blog.csdnimg.cn/fcc22710385e4edabccf2451d5f64a99.jpeg'))
+    CarouselCard(postId: 'chl', title: 'title', content: 'content', card_height: 400, asset: NetworkImage('https://img-blog.csdnimg.cn/fcc22710385e4edabccf2451d5f64a99.jpeg'))
   ];
 
   List<ContentCard> content_cards = [
   ];
+  var autoswitchpageview;
   // SharedPreferences? sharedPreferences;
   @override
   void initState(){
@@ -33,17 +34,36 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     // Future.delayed(Duration(milliseconds: 10),(){
     //   getRecommendWorks();
     // });
+    z
+      autoswitchpageview = AutoSwitchPageView(cards: cards==[]?[CarouselCard(postId: 'chl', title: 'title', content: 'content', card_height: 100, asset: NetworkImage('https://img-blog.csdnimg.cn/fcc22710385e4edabccf2451d5f64a99.jpeg'))]:cards);
+    });
 
-    getRecommendWorks();
-    getSingleChildScrollView();
+
   }
 
+
+  void _fetchList()async{
+    getRecommendWorks().then((result){
+      setState(() {
+        print('setState');
+        content_cards = result;
+      });
+    });
+    getSingleChildScrollView().then((result){
+      setState(() {
+        print('setState');
+        print('result:${result}');
+        cards = result;
+      });
+    });
+  }
   // void initSharedPreference() async{
   //   sharedPreferences = await SharedPreferences.getInstance();
   // }
 
-  void getSingleChildScrollView()async{
-    requestGet('/api/cos/community/recommend_works_with_urls',
+  Future<List<CarouselCard>> getSingleChildScrollView()async{
+    List<CarouselCard> _cards = cards;
+    await requestGet('/api/cos/community/recommend_works_with_urls',
       {
         'Authorization': 'Bearer ${LocalStorage.getString('token') ?? '43432'}',
       },query: {
@@ -52,36 +72,30 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         if(res.statusCode == 200) {
           String decodedString1 = utf8.decode(res.bodyBytes);
           List posts = jsonDecode(decodedString1)['posts'];
-          print('cards start');
-          for( var post in posts){
-            print(post);
-            cards.add(CarouselCard(postId: post['postId'], title: post['title'], content: post['content'], card_height: 100, asset: NetworkImage(post['urls'][0])));
+          for(var post in posts){
+            _cards.add(CarouselCard(postId: post['postId'], title: post['title'], content: post['content'], card_height: 200, asset: NetworkImage('https://android-1324918669.cos.ap-beijing.myqcloud.com/23c396f7b5f58d25/0123testtest1616/Materials/0.png')));
           }
-          print(cards);
-          print('cards end');
-          setState(() {
-
-          });
+          return _cards;
         }
+        return _cards;
       }
     );
+    return _cards;
   }
 
-  void getRecommendWorks() async{
-    requestGet('/api/cos/community/recommend_works', {
+  Future<List<ContentCard>> getRecommendWorks() async{
+    List<ContentCard> _content_cards = content_cards;
+    await requestGet('/api/cos/community/recommend_works', {
       'Authorization': 'Bearer ${LocalStorage.getString('token') ?? '43432'}',
     },query: {
       'maxNum': '10'
-    }).then((http.Response res) {
-      print('1234');
-      print(LocalStorage.getString('token'));
-      print(res.statusCode);
+    }).then((http.Response res) async {
       if(res.statusCode == 200){
         String decodedString1 = utf8.decode(res.bodyBytes);
         List posts = json.decode(decodedString1)['posts'];
-        content_cards.clear();
+        _content_cards.clear();
         for(var i in posts){
-          requestGet('/api/user/get_user',
+          await requestGet('/api/user/get_user',
               {
                 'Authorization': 'Bearer ${LocalStorage.getString('token')}',
               },query: {
@@ -90,27 +104,24 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                 if(res2.statusCode == 200) {
                   String decodedString2 = utf8.decode(res2.bodyBytes);
                   Map body = jsonDecode(decodedString2) as Map;
-                  print(i['title']);
-                  print(i['content']);
-                  print(i['postId']);
-                  print(body['userAvatar']);
-                  print(body['userName']);
-
                   ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['userAvatar'],username: body['userName'],);
-                  setState(() {
-                    content_cards.add(card);
-                  });
+                  _content_cards.add(card);
+                  return _content_cards;
                 }
+                return _content_cards;
           });
         }
       }
 
     });
+    return _content_cards;
   }
 
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    // getRecommendWorks();
+    // getSingleChildScrollView();
     return Scaffold(
       body: Center(
           child: SizedBox(
@@ -125,7 +136,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                         children: [
                           SizedBox(
                               height: 300.0,
-                              child: AutoSwitchPageView(cards: cards,)
+                              child: autoswitchpageview
                           ),
                           CardList(cards: content_cards,)
                         ],

@@ -50,6 +50,7 @@ class _AutoSwitchPageViewState extends State<AutoSwitchPageView> {
         curve: Curves.easeInOut,
       );
     });
+    print('inner cards${cards}');
   }
 
   @override
