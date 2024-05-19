@@ -1,238 +1,142 @@
-import 'dart:io';
-
-import 'package:audio_waveforms/audio_waveforms.dart';
-import 'package:file_picker/file_picker.dart';
+import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
+import 'dart:math';
 
-import '../components/chat_bubble.dart';
+void main() => runApp(SlotMachineApp());
 
-void main() => runApp(const MyApp());
-
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
+class SlotMachineApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      title: 'Audio Waveforms',
-      debugShowCheckedModeBanner: false,
-      home: Home(),
+    return MaterialApp(
+      title: 'Slot Machine',
+      home: SlotMachineScreen(),
     );
   }
 }
 
-class Home extends StatefulWidget {
-  const Home({Key? key}) : super(key: key);
-
+class SlotMachineScreen extends StatefulWidget {
   @override
-  State<Home> createState() => _HomeState();
+  _SlotMachineScreenState createState() => _SlotMachineScreenState();
 }
 
-class _HomeState extends State<Home> {
-  late final RecorderController recorderController;
+class _SlotMachineScreenState extends State<SlotMachineScreen> {
+  final GlobalKey<SlotMachineState> _slotMachineKey = GlobalKey();
 
-  String? path;
-  String? musicFile;
-  bool isRecording = false;
-  bool isRecordingCompleted = false;
-  bool isLoading = true;
-  late Directory appDirectory;
-
-  @override
-  void initState() {
-    super.initState();
-    _getDir();
-    _initialiseControllers();
-  }
-
-  void _getDir() async {
-    appDirectory = await getApplicationDocumentsDirectory();
-    path = "${appDirectory.path}/recording.m4a";
-    isLoading = false;
-    setState(() {});
-  }
-
-  void _initialiseControllers() {
-    recorderController = RecorderController()
-      ..androidEncoder = AndroidEncoder.aac
-      ..androidOutputFormat = AndroidOutputFormat.mpeg4
-      ..iosEncoder = IosEncoder.kAudioFormatMPEG4AAC
-      ..sampleRate = 44100;
-  }
-
-  void _pickFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    if (result != null) {
-      musicFile = result.files.single.path;
-      setState(() {});
-    } else {
-      debugPrint("File not picked");
-    }
-  }
-
-  @override
-  void dispose() {
-    recorderController.dispose();
-    super.dispose();
+  void _startSpin() {
+    _slotMachineKey.currentState?.startSpin();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF252331),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF252331),
-        elevation: 1,
-        centerTitle: true,
-        shadowColor: Colors.grey,
-        title: Row(
+        title: Text('Slot Machine'),
+      ),
+      body: Center(
+        child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.asset(
-              'assets/images/logo.png',
-              scale: 1.5,
+            SlotMachine(
+              key: _slotMachineKey,
             ),
-            const SizedBox(width: 10),
-            const Text('Simform'),
-          ],
-        ),
-      ),
-      body: isLoading
-          ? const Center(
-        child: CircularProgressIndicator(),
-      )
-          : SafeArea(
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-            Expanded(
-              child: ListView.builder(
-                itemCount: 4,
-                itemBuilder: (_, index) {
-                  // return WaveBubble(
-                  //   : index + 1,
-                  //   isSender: index.isOdd,
-                  //   width: MediaQuery.of(context).size.width / 2,
-                  //   appDirectory: appDirectory,
-                  // );
-                },
-              ),
-            ),
-            if (isRecordingCompleted)
-              WaveBubble(
-                path: path,
-                isSender: true,
-                appDirectory: appDirectory,
-              ),
-            if (musicFile != null)
-              WaveBubble(
-                path: musicFile,
-                isSender: true,
-                appDirectory: appDirectory,
-              ),
-            SafeArea(
-              child: Row(
-                children: [
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    child: isRecording
-                        ? AudioWaveforms(
-                      enableGesture: true,
-                      size: Size(
-                          MediaQuery.of(context).size.width / 2,
-                          50),
-                      recorderController: recorderController,
-                      waveStyle: const WaveStyle(
-                        waveColor: Colors.white,
-                        extendWaveform: true,
-                        showMiddleLine: false,
-                      ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12.0),
-                        color: const Color(0xFF1E1B26),
-                      ),
-                      padding: const EdgeInsets.only(left: 18),
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 15),
-                    )
-                        : Container(
-                      width:
-                      MediaQuery.of(context).size.width / 1.7,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF1E1B26),
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      padding: const EdgeInsets.only(left: 18),
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 15),
-                      child: TextField(
-                        readOnly: true,
-                        decoration: InputDecoration(
-                          hintText: "Type Something...",
-                          hintStyle: const TextStyle(
-                              color: Colors.white54),
-                          contentPadding:
-                          const EdgeInsets.only(top: 16),
-                          border: InputBorder.none,
-                          suffixIcon: IconButton(
-                            onPressed: _pickFile,
-                            icon: Icon(Icons.adaptive.share),
-                            color: Colors.white54,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: _refreshWave,
-                    icon: Icon(
-                      isRecording ? Icons.refresh : Icons.send,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  IconButton(
-                    onPressed: _startOrStopRecording,
-                    icon: Icon(isRecording ? Icons.stop : Icons.mic),
-                    color: Colors.white,
-                    iconSize: 28,
-                  ),
-                ],
-              ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _startSpin,
+              child: Text('Spin'),
             ),
           ],
         ),
       ),
     );
   }
+}
 
-  void _startOrStopRecording() async {
-    try {
-      if (isRecording) {
-        recorderController.reset();
+class SlotMachine extends StatefulWidget {
+  SlotMachine({Key? key}) : super(key: key);
 
-        path = await recorderController.stop(false);
+  @override
+  SlotMachineState createState() => SlotMachineState();
+}
 
-        if (path != null) {
-          isRecordingCompleted = true;
-          debugPrint(path);
-          debugPrint("Recorded file size: ${File(path!).lengthSync()}");
-        }
-      } else {
-        await recorderController.record(path: path); // Path is optional
-      }
-    } catch (e) {
-      debugPrint(e.toString());
-    } finally {
-      setState(() {
-        isRecording = !isRecording;
+class SlotMachineState extends State<SlotMachine> {
+  final List<String> symbols = ['🍒', '🍊', '🍋', '🍇', '🔔', '💎'];
+  late List<String> result;
+  late Timer _timer;
+  late Random _random;
+  bool spinning = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _random = Random();
+    result = List.generate(3, (index) => symbols[_random.nextInt(symbols.length)]);
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  void startSpin() {
+    if (!spinning) {
+      spinning = true;
+      _timer = Timer.periodic(Duration(milliseconds: 200), (timer) {
+        setState(() {
+          result.insert(0, result.removeLast());
+        });
       });
+      // Simulate stopping after 3 seconds
+      Future.delayed(Duration(seconds: 3), stopSpin);
     }
   }
 
-  void _refreshWave() {
-    if (isRecording) recorderController.refresh();
+  void stopSpin() {
+    _timer.cancel();
+    setState(() {
+      spinning = false;
+    });
+    // Check result and show alert for win
+    if (result[0] == result[1] && result[1] == result[2]) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Congratulations!'),
+            content: Text('You win!'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        for (var i = 0; i < result.length; i++)
+          Container(
+            margin: EdgeInsets.all(8),
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              border: Border.all(color: Colors.black),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              result[i],
+              style: TextStyle(fontSize: 40),
+            ),
+          ),
+      ],
+    );
   }
 }

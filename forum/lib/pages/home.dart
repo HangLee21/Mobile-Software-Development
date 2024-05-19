@@ -28,31 +28,18 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   @override
   void initState(){
     super.initState();
-    // initSharedPreference();
-    // Future.delayed(Duration(milliseconds: 10),(){
-    //   getRecommendWorks();
-    // });
-    // getRecommendWorks();
+    getRecommendWorks();
   }
 
-  // void initSharedPreference() async{
-  //   sharedPreferences = await SharedPreferences.getInstance();
-  // }
-
   void getRecommendWorks() async{
-    // print(Uri.http(BASEURL,'/api/cos/community/recommend_works_with_urls',{'maxNum': '10'}).toString());
-    // var r = await http.get(Uri.parse('http://$BASEURL/api/cos/community/recommend_works_with_urls?maxNum=10'), headers: {
-    //   'Authorization': 'Bear: fdsfd}',
-    // }, );
-    // print(r.statusCode.toString());
     requestGet('/api/cos/community/recommend_works', {
       'Authorization': 'Bearer ${LocalStorage.getString('token') ?? '43432'}',
     },query: {
       'maxNum': '10'
     }).then((http.Response res) {
-      print('1234');
-      print(LocalStorage.getString('token'));
-      print(res.statusCode);
+      // print('1234');
+      // print(LocalStorage.getString('token'));
+      // print(res.statusCode);
       if(res.statusCode == 200){
         List posts = json.decode(res.body)['posts'];
         content_cards.clear();

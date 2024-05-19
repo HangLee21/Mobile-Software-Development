@@ -115,6 +115,7 @@ class _ChatPageState extends State<ChatPage>{
   void dispose() {
     recorderController.dispose();
     _streamSubscription?.cancel();
+    LocalStorage.remove('currentUserId');
     // if(_betterPlayerController.i)
     // _betterPlayerController.dispose();
     super.dispose();
