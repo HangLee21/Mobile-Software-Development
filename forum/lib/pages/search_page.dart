@@ -43,8 +43,11 @@ class _SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMi
       'content': widget.query,
     }).then((http.Response res) {
       if(res.statusCode == 200){
-        List posts = json.decode(res.body)['posts'];
         content_cards.clear();
+        if (json.decode(res.body)['posts'] == null) {
+          return;
+        }
+        List posts = json.decode(res.body)['posts'];
         for(var i in posts){
           requestGet('/api/user/get_user',
               {
@@ -140,6 +143,17 @@ class _SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMi
                     child:
                     Column(
                       children: [
+                        if (content_cards.isEmpty)
+                          Padding(
+                            padding: const EdgeInsets.all(20.0),
+                            child: Text(
+                              'No results found for "${widget.query}"',
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 20,
+                              ),
+                            ),
+                          ),
                         CardList(cards: content_cards,)
                       ],
                     ),

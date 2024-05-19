@@ -28,7 +28,34 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   @override
   void initState(){
     super.initState();
+    getSingleChildScrollView();
     getRecommendWorks();
+  }
+
+  // void initSharedPreference() async{
+  //   sharedPreferences = await SharedPreferences.getInstance();
+  // }
+
+  void getSingleChildScrollView()async{
+    requestGet('/api/cos/community/recommend_works_with_urls',
+      {
+        'Authorization': 'Bearer ${LocalStorage.getString('token') ?? '43432'}',
+      },query: {
+          'maxNum': '10'
+      }).then((http.Response res) {
+        if(res.statusCode == 200) {
+          String decodedString1 = utf8.decode(res.bodyBytes);
+          List posts = jsonDecode(decodedString1)['posts'];
+          for( var post in posts){
+            print(post);
+            cards.add(CarouselCard(postId: post['postId'], title: post['title'], content: post['content'], card_height: 200, asset: NetworkImage(post['urls'][0])),);
+          }
+          setState(() {
+
+          });
+        }
+      }
+    );
   }
 
   void getRecommendWorks() async{
@@ -37,11 +64,9 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     },query: {
       'maxNum': '10'
     }).then((http.Response res) {
-      print('1234');
-      print(LocalStorage.getString('token'));
-      print(res.statusCode);
       if(res.statusCode == 200){
-        List posts = json.decode(res.body)['posts'];
+        String decodedString1 = utf8.decode(res.bodyBytes);
+        List posts = json.decode(decodedString1)['posts'];
         content_cards.clear();
         for(var i in posts){
           requestGet('/api/user/get_user',
@@ -50,16 +75,9 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
               },query: {
                 'userId': i['userId']
               }).then((http.Response res2){
-                print('12312312314');
-                print(res2.statusCode);
                 if(res2.statusCode == 200) {
-                  Map body = json.decode(res2.body)['content'];
-                  print(i['title']);
-                  print(i['content']);
-                  print(i['postId']);
-                  print(body['userAvatar']);
-                  print(body['userName']);
-
+                  String decodedString2 = utf8.decode(res2.bodyBytes);
+                  Map body = jsonDecode(decodedString2) as Map;
                   ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['userAvatar'],username: body['userName'],);
                   setState(() {
                     content_cards.add(card);
