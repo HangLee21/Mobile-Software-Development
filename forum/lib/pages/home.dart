@@ -37,9 +37,9 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     },query: {
       'maxNum': '10'
     }).then((http.Response res) {
-      // print('1234');
-      // print(LocalStorage.getString('token'));
-      // print(res.statusCode);
+      print('1234');
+      print(LocalStorage.getString('token'));
+      print(res.statusCode);
       if(res.statusCode == 200){
         List posts = json.decode(res.body)['posts'];
         content_cards.clear();
@@ -50,8 +50,16 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
               },query: {
                 'userId': i['userId']
               }).then((http.Response res2){
+                print('12312312314');
+                print(res2.statusCode);
                 if(res2.statusCode == 200) {
                   Map body = json.decode(res2.body)['content'];
+                  print(i['title']);
+                  print(i['content']);
+                  print(i['postId']);
+                  print(body['userAvatar']);
+                  print(body['userName']);
+
                   ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['userAvatar'],username: body['userName'],);
                   setState(() {
                     content_cards.add(card);
