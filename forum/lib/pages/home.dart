@@ -32,7 +32,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     // Future.delayed(Duration(milliseconds: 10),(){
     //   getRecommendWorks();
     // });
-    // getRecommendWorks();
+    getRecommendWorks();
   }
 
   // void initSharedPreference() async{
@@ -40,11 +40,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   // }
 
   void getRecommendWorks() async{
-    // print(Uri.http(BASEURL,'/api/cos/community/recommend_works_with_urls',{'maxNum': '10'}).toString());
-    // var r = await http.get(Uri.parse('http://$BASEURL/api/cos/community/recommend_works_with_urls?maxNum=10'), headers: {
-    //   'Authorization': 'Bear: fdsfd}',
-    // }, );
-    // print(r.statusCode.toString());
     requestGet('/api/cos/community/recommend_works', {
       'Authorization': 'Bearer ${LocalStorage.getString('token') ?? '43432'}',
     },query: {
@@ -65,6 +60,12 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
               }).then((http.Response res2){
                 if(res2.statusCode == 200) {
                   Map body = json.decode(res2.body)['content'];
+                  print(i['title']);
+                  print(i['content']);
+                  print(i['postId']);
+                  print(body['userAvatar']);
+                  print(body['userName']);
+
                   ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['userAvatar'],username: body['userName'],);
                   setState(() {
                     content_cards.add(card);

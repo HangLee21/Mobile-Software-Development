@@ -21,7 +21,6 @@ class FavoriteListState extends State<FavoriteList> {
   void initState(){
     super.initState();
     getNames();
-
   }
 
   void getNames(){
@@ -70,7 +69,24 @@ class FavoriteListState extends State<FavoriteList> {
         physics: NeverScrollableScrollPhysics(), // 禁止内部ListView滚动
         itemCount: peoples.length,
         itemBuilder: (BuildContext context, int index) {
-          return FanCard(peoples[index]['userAvatar'], peoples[index]['userName']);
+          return FanCard(peoples[index]['userAvatar'], peoples[index]['userName'],(){
+            requestGet('/api/info/user/cancel_subscribe_others',
+                {
+                  'Authorization': 'Bearer ${LocalStorage.getString('token')}',
+                },
+                query: {
+                  'your_userId': LocalStorage.getString('userId'),
+                  'another_userId': peoples[index]['userAvatar']
+                }
+            ).then((http.Response res){
+              if (res.statusCode == 200){
+                peoples.removeAt(index);
+                setState(() {
+
+                });
+              }
+            });
+          });
         },
       )
     );
