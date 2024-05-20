@@ -74,7 +74,7 @@ class ContentCard extends StatelessWidget {
                       maxLines: 2, // 设置最大行数
                     ),
                   ),
-                  if(media_urls != null)
+                  if(media_urls != null && media_urls.isNotEmpty)
                     SizedBox(
                       height: 200.0,
                       child: CarouselDemo(fileNames: media_urls,),

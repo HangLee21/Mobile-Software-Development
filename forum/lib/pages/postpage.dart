@@ -22,16 +22,16 @@ class PostPage extends StatefulWidget{
 }
 
 class _PostState extends State<PostPage>{
-  String username = '';
-  String avatar = '';
-  String title = '';
+  late String username = '';
+  late String avatar = '';
+  late String title = '';
   // String content = '我发现很多人的手机换主题壁纸铃声就是不换字体，这是为什么？\n更新问题：本人只换了一ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd个楷体，感觉很好看，字库也很大，默字体不能覆盖的字都能显示，感觉比系统字体好看多了，为什么很多人的手机还在用冷冰冰的无衬线字体？';
-  String content = '';
-  String createAt = '';
+  late String content = '';
+  late String createAt = '';
   late int likes = 0;
   late int stars = 0;
   late int views = 0;
-  List<String> urls = [];
+  late List<String> urls = [];
   late bool liked = false;
   late bool stared = false;
   late bool subscribed = false;
@@ -65,7 +65,6 @@ class _PostState extends State<PostPage>{
     getComments();
     getLikedAndStared();
     addViews();
-    checkSubscribed();
   }
 
   void initStorage()async{
@@ -99,7 +98,7 @@ class _PostState extends State<PostPage>{
                   'commentId': comment['commentId'],
                 }).then((http.Response res3) {
                   // TODO
-                  print(res3.body);
+                  //print(res3.body);
                   if(res3.statusCode == 200) {
                     String decodedString = utf8.decode(res3.bodyBytes);
                     Map body3 = jsonDecode(decodedString) as Map;
@@ -116,7 +115,6 @@ class _PostState extends State<PostPage>{
                       commentItem['liked'] = body3['commentInformation']['like'];
                       comments.add(commentItem);
                     });
-
                   }
                 });
 
@@ -162,8 +160,9 @@ class _PostState extends State<PostPage>{
                 username = body2['content']['userName'];
                 avatar = body2['content']['userAvatar'];
                 authorId = post['userId'];
-                print(authorId);
+                //print(authorId);
               });
+              checkSubscribed();
             }
           });
         }
@@ -209,8 +208,8 @@ class _PostState extends State<PostPage>{
       'another_userId': authorId,
       'your_userId': LocalStorage.getString('userId')
     }).then((http.Response res) {
-      print(authorId);
-      print(res.body);
+      //print(authorId);
+      //print(res.body);
       if (res.statusCode == 200) {
         setState(() {
           subscribed = true;
@@ -228,7 +227,7 @@ class _PostState extends State<PostPage>{
       'another_userId': authorId,
       'your_userId': LocalStorage.getString('userId')
     }).then((http.Response res) {
-      print(res.body);
+      //print(res.body);
       if (res.statusCode == 200) {
         setState(() {
           subscribed = false;
@@ -252,9 +251,6 @@ class _PostState extends State<PostPage>{
       'subscribeId': authorId,
       'userId': LocalStorage.getString('userId')
     }).then((http.Response res) {
-      print('authorId');
-      print(authorId);
-      print(res.body);
       if (res.statusCode == 200) {
         setState(() {
           subscribed = json.decode(res.body)['result'];
@@ -379,7 +375,7 @@ class _PostState extends State<PostPage>{
           'commentUserId': LocalStorage.getString('userId') ?? '',
           'content': textEditingController.text
         }).then((http.Response res) {
-          print(res.body);
+          //print(res.body);
           if (res.statusCode == 200) {
             List<String> urls = [];
             setState(() {
@@ -436,7 +432,7 @@ class _PostState extends State<PostPage>{
                                 Row(
                                   children: [
                                     CircleAvatar(
-                                      // backgroundImage: NetworkImage(avatar),
+                                      backgroundImage: NetworkImage(avatar),
                                     ),
                                     const SizedBox(width: 20),
                                     Text(username,style: const TextStyle(

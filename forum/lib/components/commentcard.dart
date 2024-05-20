@@ -109,7 +109,7 @@ class _CommentCard extends State<CommentCard>{
             // mainAxisAlignment: MainAxisAlignment.start,
             children: [
               CircleAvatar(
-                // backgroundImage: NetworkImage(avatar),
+                backgroundImage: NetworkImage(widget.avatar),
               ),
               const SizedBox(width: 10,),
               Column(
