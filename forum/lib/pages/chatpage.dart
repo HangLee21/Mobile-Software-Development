@@ -74,7 +74,7 @@ class _ChatPageState extends State<ChatPage>{
     // get chat history
     initData();
     // listen to websocket
-    initWebSocket();
+    // initWebSocket();
     _initialiseControllers();
   }
   void _getDir() async {

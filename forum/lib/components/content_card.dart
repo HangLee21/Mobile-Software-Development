@@ -11,6 +11,7 @@ class ContentCard extends StatelessWidget {
     this.media_urls,
     required this.postId,
     this.avatar,
+    this.type,
     this.username,
   });
 
@@ -20,6 +21,7 @@ class ContentCard extends StatelessWidget {
   final String? username;
   final List<String>? media_urls;
   final String? postId;
+  final String? type;
 
   @override
   Widget build(BuildContext context) {
@@ -116,7 +118,7 @@ class ContentCard extends StatelessWidget {
 
     final RelativeRect position = RelativeRect.fromLTRB(
       MediaQuery.of(context).size.width - 100, // 从屏幕右侧向左偏移100像素
-      cardBox.localToGlobal(cardBox.size.bottomRight(Offset.zero), ancestor: overlay).dy, // 与卡片底部对齐
+      cardBox.localToGlobal(cardBox.size.topRight(Offset.zero), ancestor: overlay).dy, // 与卡片底部对齐
       MediaQuery.of(context).size.width,
       overlay.size.height,
     );
@@ -125,16 +127,18 @@ class ContentCard extends StatelessWidget {
       context: context,
       position: position,
       items: [
-        PopupMenuItem(
-          child: ListTile(
-            leading: Icon(Icons.delete),
-            title: Text('删除'),
-            onTap: () {
-              // 处理删除操作
-              Navigator.pop(context);
-            },
+        if(type != 'home')
+          PopupMenuItem(
+            child: ListTile(
+              leading: Icon(Icons.delete),
+              title: Text('删除'),
+              onTap: () {
+                // 处理删除操作
+                Navigator.pop(context);
+              },
+            ),
           ),
-        ),
+
         PopupMenuItem(
           child: ListTile(
             leading: Icon(Icons.favorite),
