@@ -113,7 +113,7 @@ class _ActivityPageState extends State<ActivityPage> with AutomaticKeepAliveClie
             if(res2.statusCode == 200) {
               String decodedString2 = utf8.decode(res2.bodyBytes);
               Map body = jsonDecode(decodedString2) as Map;
-              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['userAvatar'],username: body['userName'],);
+              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['content']['userAvatar'],username: body['content']['userName'],);
               setState(() {
                 content_cards.add(card);
               });
