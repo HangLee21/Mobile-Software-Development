@@ -63,6 +63,7 @@ class _ActivityPageState extends State<ActivityPage> with AutomaticKeepAliveClie
     },query:  {
       'userId': LocalStorage.getString('userId')
     }).then((http.Response res) async {
+      print(res.body);
       if(res.statusCode == 200){
         String decodedString = utf8.decode(res.bodyBytes);
         Map body = jsonDecode(decodedString) as Map;
@@ -75,10 +76,13 @@ class _ActivityPageState extends State<ActivityPage> with AutomaticKeepAliveClie
             }, query: {
               'userId': i
             }).then((http.Response res2) {
+              print(res2.statusCode);
           if (res2.statusCode == 200) {
-            Map body = json.decode(res2.body)['content'];
+            String decodedString = utf8.decode(res2.bodyBytes);
+            Map body2 = jsonDecode(decodedString) as Map;
+            Map body3 = body2['content'];
             setState(() {
-              users.add(User(body['userName'], body['userAvatar'], i));
+              users.add(User(body3['userName'], body3['userAvatar'], i));
             });
           }
         });
@@ -87,7 +91,7 @@ class _ActivityPageState extends State<ActivityPage> with AutomaticKeepAliveClie
   }
 
   void getActivityWorks() async{
-    requestGet("/api/cos/query_subscriptions_posts", {
+    requestGet("/api/cos/user/query_subscriptions_posts", {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
     },query:  {
@@ -95,6 +99,7 @@ class _ActivityPageState extends State<ActivityPage> with AutomaticKeepAliveClie
       'pageIndex': pageIndex.toString(),
       'pageSize': pageSize.toString()
     }).then((http.Response res) {
+      print(res.body);
       if(res.statusCode == 200){
         String decodedString1 = utf8.decode(res.bodyBytes);
         List posts = json.decode(decodedString1)['posts'];

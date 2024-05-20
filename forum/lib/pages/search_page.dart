@@ -36,7 +36,7 @@ class _SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMi
   }
 
   void getSearchWorks() async{
-    requestGet("/api/chat/get_all_messages", {
+    requestGet("/api/search/search_post", {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
     },query:  {
@@ -47,7 +47,9 @@ class _SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMi
         if (json.decode(res.body)['posts'] == null) {
           return;
         }
-        List posts = json.decode(res.body)['posts'];
+        String decodedString = utf8.decode(res.bodyBytes);
+        Map body = jsonDecode(decodedString) as Map;
+        List posts = body['posts'];
         for(var i in posts){
           requestGet('/api/user/get_user',
               {
@@ -56,8 +58,9 @@ class _SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMi
                 'userId': i['userId']
               }).then((http.Response res2){
             if(res2.statusCode == 200) {
-              Map body = json.decode(res2.body)['content'];
-              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['userAvatar'],username: body['userName'],);
+              String decodedString2 = utf8.decode(res2.bodyBytes);
+              Map body2 = jsonDecode(decodedString2) as Map;
+              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body2['userAvatar'],username: body2['userName'],);
               setState(() {
                 content_cards.add(card);
               });
