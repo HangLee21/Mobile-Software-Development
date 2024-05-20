@@ -38,8 +38,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       _fetchList();
       autoswitchpageview = AutoSwitchPageView(cards: cards==[]?[CarouselCard(postId: 'chl', title: 'title', content: 'content', card_height: 100, asset: NetworkImage('https://img-blog.csdnimg.cn/fcc22710385e4edabccf2451d5f64a99.jpeg'))]:cards);
     });
-
-
   }
 
 
@@ -79,7 +77,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         return _cards;
       }
       return _cards;
-    }
+      }
     );
     return _cards;
   }
@@ -105,7 +103,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
             if(res2.statusCode == 200) {
               String decodedString2 = utf8.decode(res2.bodyBytes);
               Map body = jsonDecode(decodedString2) as Map;
-              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['content']['userAvatar'],username: body['content']['userName'],);
+              print(body);
+              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['content']['userAvatar'],username: body['content']['userName'],media_urls: i['urls'].cast<String>(),type: 'home',);
               _content_cards.add(card);
               return _content_cards;
             }

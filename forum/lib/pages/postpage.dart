@@ -38,7 +38,7 @@ class _PostState extends State<PostPage>{
   late TextEditingController textEditingController;
   FocusNode myFocusNode = FocusNode();
   bool writing = false;
-  String authorId = '';
+  late String authorId = '';
   List comments = [
   ];
 
@@ -142,7 +142,6 @@ class _PostState extends State<PostPage>{
         List posts = body['posts'];
         if(posts != []){
           Map post = posts[0];
-          authorId = post['userId'];
           requestGet('/api/user/get_user', {
             'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
           },query: {
@@ -162,6 +161,8 @@ class _PostState extends State<PostPage>{
                 views = post['views'];
                 username = body2['content']['userName'];
                 avatar = body2['content']['userAvatar'];
+                authorId = post['userId'];
+                print(authorId);
               });
             }
           });
@@ -208,6 +209,7 @@ class _PostState extends State<PostPage>{
       'another_userId': authorId,
       'your_userId': LocalStorage.getString('userId')
     }).then((http.Response res) {
+      print(authorId);
       print(res.body);
       if (res.statusCode == 200) {
         setState(() {
@@ -250,6 +252,9 @@ class _PostState extends State<PostPage>{
       'subscribeId': authorId,
       'userId': LocalStorage.getString('userId')
     }).then((http.Response res) {
+      print('authorId');
+      print(authorId);
+      print(res.body);
       if (res.statusCode == 200) {
         setState(() {
           subscribed = json.decode(res.body)['result'];
