@@ -136,7 +136,8 @@ class _LoginState extends State<Login>{
                     {}
                   ).then((http.Response res){
                     if(res.statusCode == 200){
-                      Map body = json.decode(res.body) as Map;
+                      String decodedString = utf8.decode(res.bodyBytes);
+                      Map body = jsonDecode(decodedString) as Map;
                       LocalStorage.setString('userName', body['content']['userName']);
                       LocalStorage.setString('userId', body['content']['userId']);
                       LocalStorage.setString('userAvatar', body['content']['userAvatar']);

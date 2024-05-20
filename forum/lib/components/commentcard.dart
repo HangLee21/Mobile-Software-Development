@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:forum/classes/localStorage.dart';
 import 'package:forum/components/carousel.dart';
 import 'package:forum/url/user.dart';
 import 'package:http/http.dart' as http;
@@ -53,16 +54,16 @@ class _CommentCard extends State<CommentCard>{
     requestPost(
         '/api/info/comment/add_like',
         {
-          'userId': sharedPreferences?.getString('userId'),
+          'userId': LocalStorage.getString('userId'),
           'commentId': widget.commentId
         },
         {
           'Content-Type':'application/json',
-          'Authorization': 'Bear ${sharedPreferences?.getString('token')}'
+          'Authorization': 'Bearer ${LocalStorage.getString('token')}'
         }
     ).then((http.Response res){
       if(res.statusCode == 200){
-        sharedPreferences?.setString('token', json.decode(res.body)['token']);
+        LocalStorage.setString('token', json.decode(res.body)['token']);
         setState(() {
           liked = !liked;
           likes++;
@@ -77,16 +78,16 @@ class _CommentCard extends State<CommentCard>{
     requestDelete(
         '/api/info/comment/cancel_like',
         {
-          'userId': sharedPreferences?.getString('userId'),
+          'userId': LocalStorage.getString('userId'),
           'commentId': widget.commentId
         },
         {
           'Content-Type':'application/json',
-          'Authorization': 'Bear ${sharedPreferences?.getString('token')}'
+          'Authorization': 'Bearer ${LocalStorage.getString('token')}'
         }
     ).then((http.Response res){
       if(res.statusCode == 200){
-        sharedPreferences?.setString('token', json.decode(res.body)['token']);
+        LocalStorage.setString('token', json.decode(res.body)['token']);
         setState(() {
           liked = !liked;
           likes--;

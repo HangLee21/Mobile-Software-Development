@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +11,8 @@ import 'package:forum/url/user.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+
+import '../constants.dart';
 
 class PostPage extends StatefulWidget{
   final String postId;
@@ -25,32 +28,18 @@ class _PostState extends State<PostPage>{
   // String content = '我发现很多人的手机换主题壁纸铃声就是不换字体，这是为什么？\n更新问题：本人只换了一ddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd个楷体，感觉很好看，字库也很大，默字体不能覆盖的字都能显示，感觉比系统字体好看多了，为什么很多人的手机还在用冷冰冰的无衬线字体？';
   String content = '';
   String createAt = '';
-  int likes = 0;
-  int stars = 0;
-  int views = 0;
+  late int likes = 0;
+  late int stars = 0;
+  late int views = 0;
   List<String> urls = [];
-  bool liked = false;
-  bool stared = false;
+  late bool liked = false;
+  late bool stared = false;
+  late bool subscribed = false;
   late TextEditingController textEditingController;
   FocusNode myFocusNode = FocusNode();
   bool writing = false;
+  String authorId = '';
   List comments = [
-    // {
-    //   'avatar': '',
-    //   'username': 'chl',
-    //   'time': '2021/3/14',
-    //   'content': '煞笔',
-    //   'likes': 10,
-    //   'commentId': ''
-    // },
-    // {
-    //   'avatar': '',
-    //   'username': 'chl',
-    //   'time': '2021/3/14',
-    //   'content': '若至',
-    //   'likes': 10,
-    //   'commentId': ''
-    // }
   ];
 
   SharedPreferences? sharedPreferences;
@@ -75,6 +64,8 @@ class _PostState extends State<PostPage>{
     getInformation();
     getComments();
     getLikedAndStared();
+    addViews();
+    checkSubscribed();
   }
 
   void initStorage()async{
@@ -87,7 +78,8 @@ class _PostState extends State<PostPage>{
       'postId': widget.postId,
     }).then((http.Response res){
       if(res.statusCode == 200){
-        Map body = json.decode(res.body);
+        String decodedString = utf8.decode(res.bodyBytes);
+        Map body = jsonDecode(decodedString) as Map;
         List _comments = body['comments'];
         if(_comments != []){
           comments.clear();
@@ -98,13 +90,19 @@ class _PostState extends State<PostPage>{
               'userId': comment['commentUserId'],
             }).then((http.Response res2) {
               if(res2.statusCode == 200) {
-                print('2002');
+                String decodedString = utf8.decode(res2.bodyBytes);
+                Map body2 = jsonDecode(decodedString) as Map;
                 requestGet('/api/info/comment/get_info', {
                   'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
                 },query: {
                   'userId': comment['commentUserId'],
+                  'commentId': comment['commentId'],
                 }).then((http.Response res3) {
+                  // TODO
+                  print(res3.body);
                   if(res3.statusCode == 200) {
+                    String decodedString = utf8.decode(res3.bodyBytes);
+                    Map body3 = jsonDecode(decodedString) as Map;
                     setState(() {
                       Map commentItem = {};
                       commentItem['content'] = comment['content'];
@@ -112,10 +110,10 @@ class _PostState extends State<PostPage>{
                       commentItem['urls'] = comment['urls'].cast<String>();;
                       commentItem['commentId'] = comment['commentId'];
                       commentItem['likes'] = comment['likes'];
-                      print(comment['likes']);
-                      commentItem['avatar'] = json.decode(res2.body)['content']['userAvatar'];
-                      commentItem['username'] = json.decode(res2.body)['content']['userName'];
-                      commentItem['liked'] = json.decode(res3.body)['commentInformation']['like'];
+                      // print(comment['likes']);
+                      commentItem['avatar'] = body2['content']['userAvatar'];
+                      commentItem['username'] = body2['content']['userName'];
+                      commentItem['liked'] = body3['commentInformation']['like'];
                       comments.add(commentItem);
                     });
 
@@ -132,24 +130,27 @@ class _PostState extends State<PostPage>{
 
   void getInformation()async{
     requestGet('/api/cos/post/query_work', {
-      'Authorization': 'Bear ${sharedPreferences?.getString('token')}'
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
     },query: {
       'postId': widget.postId,
-      'userId': sharedPreferences?.getString('userId')
+      'userId': LocalStorage.getString('userId')
     }).then((http.Response res){
       if(res.statusCode == 200){
-        Map body = json.decode(res.body);
-        sharedPreferences?.setString('token', body['token']);
+        String decodedString = utf8.decode(res.bodyBytes);
+        Map body = jsonDecode(decodedString) as Map;
+        LocalStorage.setString('token', body['token']);
         List posts = body['posts'];
         if(posts != []){
           Map post = posts[0];
-          print(post);
+          authorId = post['userId'];
           requestGet('/api/user/get_user', {
-            'Authorization': 'Bear ${sharedPreferences?.getString('token')}'
+            'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
           },query: {
-            'userId': sharedPreferences?.getString('userId')
+            'userId': post['userId'],
           }).then((http.Response res2) {
             if(res2.statusCode == 200) {
+              String decodedString = utf8.decode(res2.bodyBytes);
+              Map body2 = jsonDecode(decodedString) as Map;
               setState(() {
                 title = post['title'];
                 content = post['content'];
@@ -159,8 +160,8 @@ class _PostState extends State<PostPage>{
                 likes = post['likes'];
                 stars = post['stars'];
                 views = post['views'];
-                username = json.decode(res2.body)['content']['userName'];
-                avatar = json.decode(res2.body)['content']['userAvatar'];
+                username = body2['content']['userName'];
+                avatar = body2['content']['userAvatar'];
               });
             }
           });
@@ -171,10 +172,10 @@ class _PostState extends State<PostPage>{
   
   void getLikedAndStared() async{
     requestGet('/api/info/post/get_info', {
-      'Authorization': 'Bear ${sharedPreferences?.getString('token')}'
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
     },query: {
       'postId': widget.postId,
-      'userId': sharedPreferences?.getString('userId')
+      'userId': LocalStorage.getString('userId')
     }).then((http.Response res) {
       if(res.statusCode == 200) {
         Map info = json.decode(res.body)['postInformation'];
@@ -184,12 +185,216 @@ class _PostState extends State<PostPage>{
     });
   }
 
+  void addViews() {
+    requestPost('/api/info/post/update_view', {
+      'postId': widget.postId,
+      'userId': LocalStorage.getString('userId') ?? ''
+    },{
+    'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+    }).then((http.Response res) {
+      // print(res.body);
+      if(res.statusCode == 200) {
+        setState(() {
+          views += 1;
+        });
+      }
+    });
+  }
+
+  void getSubscribed() {
+    requestGet('/api/info/user/get_subscribe_others',{
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+    },query: {
+      'another_userId': authorId,
+      'your_userId': LocalStorage.getString('userId')
+    }).then((http.Response res) {
+      print(res.body);
+      if (res.statusCode == 200) {
+        setState(() {
+          subscribed = true;
+        });
+      }
+    });
+  }
+
+  void cancelSubscribed() {
+    requestDelete('/api/info/user/cancel_subscribe_others',{
+
+    },{
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+    },query: {
+      'another_userId': authorId,
+      'your_userId': LocalStorage.getString('userId')
+    }).then((http.Response res) {
+      print(res.body);
+      if (res.statusCode == 200) {
+        setState(() {
+          subscribed = false;
+        });
+      }
+    });
+  }
+
+  void handelSubscribe() {
+    if(subscribed){
+      cancelSubscribed();
+    }else{
+      getSubscribed();
+    }
+  }
+
+  void checkSubscribed() {
+    requestGet('/api/info/user/subscribe', {
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+    }, query: {
+      'subscribeId': authorId,
+      'userId': LocalStorage.getString('userId')
+    }).then((http.Response res) {
+      if (res.statusCode == 200) {
+        setState(() {
+          subscribed = json.decode(res.body)['result'];
+        });
+      }
+    });
+  }
+
+  void addLike() {
+    requestPost('/api/info/post/add_like', {
+      'postId': widget.postId,
+      'userId': LocalStorage.getString('userId') ?? ''
+    }, {
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+    }
+    ).then((http.Response res) {
+      //print(res.body);
+      if (res.statusCode == 200) {
+        setState(() {
+          liked = true;
+          likes += 1;
+        });
+      }
+    });
+  }
+
+  void cancelLike() {
+    requestDelete('/api/info/post/cancel_like', {
+      'postId': widget.postId,
+      'userId': LocalStorage.getString('userId') ?? ''
+    }, {
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+    }).then((http.Response res) {
+      //print(res.body);
+      if (res.statusCode == 200) {
+        setState(() {
+          liked = false;
+          likes -= 1;
+        });
+      }
+    });
+  }
+
+  void addStar() {
+    requestPost('/api/info/post/add_star', {
+      'postId': widget.postId,
+      'userId': LocalStorage.getString('userId') ?? ''
+    }, {
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? '',
+    }).then((http.Response res) {
+      //print(res.body);
+      if (res.statusCode == 200) {
+        setState(() {
+          stared = true;
+          stars += 1;
+        });
+      }
+    });
+  }
+
+  void cancelStar() {
+    requestDelete('/api/info/post/cancel_star', {
+      'postId': widget.postId,
+      'userId': LocalStorage.getString('userId') ?? ''
+    }, {
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? '',
+    }).then((http.Response res) {
+      //print(res.body);
+      if (res.statusCode == 200) {
+        setState(() {
+          stared = false;
+          stars -= 1;
+        });
+      }
+    });
+  }
+
+
   @override
   void dispose() {
     // Clean up the focus node when the Form is disposed.
     textEditingController.dispose();
     myFocusNode.dispose();
     super.dispose();
+  }
+
+  _subscribeButton(){
+    // if(authorId == LocalStorage.getString('userId')){
+    //   return const Text('无法关注自己');
+    // }
+    if(!subscribed){
+      return const Row(
+      children: [
+        Text('关注'),
+        Icon(Icons.add),
+        ],
+      );
+    }
+    else{
+      return const Row(
+      children: [
+        Text('已关注'),
+        Icon(Icons.check),
+        ],
+      );
+    }
+  }
+
+  void addComment() {
+    requestGet('/api/cos/get_commentId', {
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+    }).then((http.Response res) async {
+      if (res.statusCode == 200) {
+        String commentId = json.decode(res.body)['content'];
+        requestPost('/api/cos/post_comment_text', {
+
+        }, {
+          'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+        },query: {
+          'commentId': commentId,
+          'postId': widget.postId,
+          'commentUserId': LocalStorage.getString('userId') ?? '',
+          'content': textEditingController.text
+        }).then((http.Response res) {
+          print(res.body);
+          if (res.statusCode == 200) {
+            List<String> urls = [];
+            setState(() {
+              //CommentCard(i['avatar'], i['username'], i['content'], i['likes'], i['time'], i['commentId'],i['liked'],i['urls']),
+              comments.add({
+                'commentId': commentId,
+                'content': textEditingController.text,
+                'time': DateTime.now().toString(),
+                'username': LocalStorage.getString('userName'),
+                'avatar': LocalStorage.getString('userAvatar'),
+                'likes': 0,
+                'liked': false,
+                'urls': urls,
+              });
+              textEditingController.clear();
+            });
+          }
+        });
+    }
+    });
   }
   @override
   Widget build(BuildContext context){
@@ -236,16 +441,10 @@ class _PostState extends State<PostPage>{
                                 ),
                                 ElevatedButton(
                                     onPressed: (){
-                                      //TODO 关注
+                                      handelSubscribe();
                                     },
-                                    child: const Row(
-                                      children: [
-                                        Text('关注'),
-                                        Icon(Icons.add),
-                                      ],
-                                    )
+                                    child: _subscribeButton()
                                 ),
-
                               ],
                             ),
                             // const SizedBox(height: 20,),
@@ -361,7 +560,7 @@ class _PostState extends State<PostPage>{
                       ),
                     ),
                     onTap: () {
-                      // sendTxt();
+                      addComment();
                     },
                   ),
 
@@ -373,13 +572,11 @@ class _PostState extends State<PostPage>{
                           duration: Duration(milliseconds: 200),
                           child: IconButton(
                             onPressed: (){
-                              //TODO
                               setState(() {
-                                liked = !liked;
                                 if(liked == true){
-                                  likes++;
+                                  cancelLike();
                                 }else{
-                                  likes--;
+                                  addLike();
                                 }
                               });
                             },
@@ -405,13 +602,11 @@ class _PostState extends State<PostPage>{
                           duration: Duration(milliseconds: 200),
                           child: IconButton(
                             onPressed: (){
-                              //TODO
                               setState(() {
-                                stared = !stared;
                                 if(stared == true){
-                                  stars++;
+                                  cancelStar();
                                 }else{
-                                  stars--;
+                                  addStar();
                                 }
                               });
                             },
@@ -435,8 +630,6 @@ class _PostState extends State<PostPage>{
           ],
         ),
       )
-
-
     );
   }
 }
