@@ -21,7 +21,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
   List<CarouselCard> cards = [
-    CarouselCard(postId: 'chl', title: 'title', content: 'content', card_height: 400, asset: NetworkImage('https://img-blog.csdnimg.cn/fcc22710385e4edabccf2451d5f64a99.jpeg'))
+    //CarouselCard(postId: 'chl', title: 'title', content: 'content', card_height: 400, asset: NetworkImage('https://img-blog.csdnimg.cn/fcc22710385e4edabccf2451d5f64a99.jpeg'))
   ];
 
   List<ContentCard> content_cards = [
