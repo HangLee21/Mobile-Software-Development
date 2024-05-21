@@ -1,30 +1,82 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-
-import 'package:forum/main.dart';
+import 'package:http/http.dart' as http;
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MaterialApp());
+  runApp(MyApp());
+}
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Stream Example',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: StreamPage(),
+    );
+  }
+}
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+class StreamPage extends StatefulWidget {
+  @override
+  _StreamPageState createState() => _StreamPageState();
+}
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
-  });
+class _StreamPageState extends State<StreamPage> {
+  late StreamController<String> _streamController;
+
+  @override
+  void initState() {
+    super.initState();
+    _streamController = StreamController<String>();
+    _startStreaming();
+  }
+
+  void _startStreaming() async {
+    var client = http.Client();
+    var request = http.Request('GET', Uri.parse('http://your-server-address/chat-stream?userId=123&content=hello'));
+
+    var response = await client.send(request);
+
+    response.stream
+        .transform(utf8.decoder)
+        .transform(LineSplitter())
+        .listen((data) {
+      _streamController.add(data);
+    }, onError: (error) {
+      _streamController.addError(error);
+    }, onDone: () {
+      _streamController.close();
+    });
+  }
+
+  @override
+  void dispose() {
+    _streamController.close();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Stream Example'),
+      ),
+      body: StreamBuilder<String>(
+        stream: _streamController.stream,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          } else {
+            return Center(child: Text('Data: ${snapshot.data}'));
+          }
+        },
+      ),
+    );
+  }
 }

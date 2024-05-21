@@ -142,13 +142,23 @@ class _ChatPageState extends State<ChatPage>{
         // 格式化时间
         String formattedTime = '$datePart $timePart';
         if(message1.senderId == widget.userId){
-          messages.insert(0, {
-            'name': message1.senderId,
-            'content': message1.content,
-            'me?': false,
-            'createdAt': formattedTime,
-            'status': 1,
-            'show': true
+          requestGet('/api/user/get_user', {
+            'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+          },query: {
+            'userId': message1.senderId,
+          }).then((http.Response res2) {
+            String decodedString = utf8.decode(res2.bodyBytes);
+            Map body2 = jsonDecode(decodedString) as Map;
+            setState(() {
+              messages.insert(0, {
+                'name': body2['content']['userName'],
+                'content': message1.content,
+                'me?': false,
+                'createdAt': formattedTime,
+                'status': 1,
+                'show': true
+              });
+            });
           });
 
           if(messages.length > 1){
@@ -170,22 +180,30 @@ class _ChatPageState extends State<ChatPage>{
           if (match != null) {
             content = '暂不支持的消息格式，请跳转页面详细观看内容';
           }
-          AnimatedSnackBar(
-            duration: Duration(seconds: 4),
-            builder: ((context) {
-              return NotificationCard(
-                friendname: message1.senderId,
-                content: content,
-                url: '',
-                friendId: message1.senderId,
-                info_num: 0,
-                remove: true,
-                onPressed: () {
+          requestGet('/api/user/get_user', {
+            'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+          },query: {
+            'userId': message1.senderId,
+          }).then((http.Response res2) {
+            String decodedString = utf8.decode(res2.bodyBytes);
+            Map body2 = jsonDecode(decodedString) as Map;
+            AnimatedSnackBar(
+              duration: Duration(seconds: 4),
+              builder: ((context) {
+                return NotificationCard(
+                  friendname: body2['content']['userName'],
+                  content: content,
+                  url: '',
+                  friendId: message1.senderId,
+                  info_num: 0,
+                  remove: true,
+                  onPressed: () {
 
-                },
-              );
-            }),
-          ).show(context);
+                  },
+                );
+              }),
+            ).show(context);
+          });
         }
       });
     });
@@ -213,13 +231,21 @@ class _ChatPageState extends State<ChatPage>{
 
             // 格式化时间
             String formattedTime = '$datePart $timePart';
-            messages.insert(0, {
-              'name': item['senderId'],
-              'content': item['content'],
-              'createdAt': formattedTime,
-              'me?': item['senderId'] == widget.selfId,
-              'status': 1,
-              'show': true
+            requestGet('/api/user/get_user', {
+              'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+            },query: {
+              'userId': item.senderId,
+            }).then((http.Response res2) {
+              String decodedString = utf8.decode(res2.bodyBytes);
+              Map body2 = jsonDecode(decodedString) as Map;
+              messages.insert(0, {
+                'name': body2['content']['userName'],
+                'content': item['content'],
+                'createdAt': formattedTime,
+                'me?': item['senderId'] == widget.selfId,
+                'status': 1,
+                'show': true
+              });
             });
           }
         }
