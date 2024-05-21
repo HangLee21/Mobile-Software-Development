@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
@@ -11,6 +12,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:better_player/better_player.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 import '../constants.dart';
 
@@ -126,12 +128,19 @@ class _WorkFieldState extends State<WorkField>{
     });
   }
 
+  Future<Uint8List?> getThumbnail(String videoUrl) async {
+    final uint8list = await VideoThumbnail.thumbnailData(
+      video: videoUrl,
+      imageFormat: ImageFormat.JPEG,
+      maxWidth: 80,
+      maxHeight: 80,
+      quality: 25,
+    );
+    return uint8list;
+  }
+
   Widget _buildMaterialBox(int index) {
     // 这里可以根据实际情况构建你的图片方块
-    print(materialCount);
-    if(materials.length > 0) {
-      print(materials[0]);
-    }
     if(index < materialCount - 1) {
       return Stack(
           children: [
@@ -151,16 +160,44 @@ class _WorkFieldState extends State<WorkField>{
                       //     width: 80,
                       //     height: 80
                       // )
-                      //     :Image.network(
-                      //     materials[index],
-                      //     width: 80,
-                      //     height: 80
-                      // )
-                      Image.network(
-                        materials[index],
-                        width: 80,
-                        height: 80
-                      )
+                      //     :FutureBuilder<Uint8List?>(
+                      //   future: getThumbnail('https://v-cdn.zjol.com.cn/280443.mp4'),
+                      //   builder: (context, snapshot) {
+                      //     if (snapshot.connectionState == ConnectionState.waiting) {
+                      //       return CircularProgressIndicator(); // 正在加载
+                      //     } else if (snapshot.hasError) {
+                      //       return Text('Error: ${snapshot.error}'); // 发生错误
+                      //     } else if (snapshot.hasData && snapshot.data != null) {
+                      //       return Image.memory(
+                      //           snapshot.data!,
+                      //           width: 80,
+                      //           height: 80,
+                      //       ); // 显示缩略图
+                      //     } else {
+                      //       return Text('No Thumbnail Available'); // 没有缩略图
+                      //     }
+                      //   },
+                      // ),
+                      FutureBuilder<Uint8List?>(
+                        future: getThumbnail('https://v-cdn.zjol.com.cn/280443.mp4'),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return CircularProgressIndicator(); // 正在加载
+                          } else if (snapshot.hasError) {
+                            print('Error: ${snapshot.error}');
+                            return Text('Error: ${snapshot.error}'); // 发生错误
+                          } else if (snapshot.hasData && snapshot.data != null) {
+                            return Image.memory(
+                              snapshot.data!,
+                              width: 80,
+                              height: 80,
+                            ); // 显示缩略图
+                          } else {
+                            return Text('No Thumbnail Available'); // 没有缩略图
+                          }
+                        },
+                      ),
+
                   ),
                 ),
               ),

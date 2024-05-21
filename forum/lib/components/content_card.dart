@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:forum/pages/personspace.dart';
 import 'package:forum/pages/postpage.dart';
 import 'carousel.dart';
 import '../constants.dart';
@@ -10,6 +11,7 @@ class ContentCard extends StatelessWidget {
     required this.content,
     this.media_urls,
     required this.postId,
+    required this.userId,
     this.avatar,
     this.type,
     this.username,
@@ -23,6 +25,7 @@ class ContentCard extends StatelessWidget {
   final List<String>? media_urls;
   final String? postId;
   final String? type;
+  final String userId;
   final void Function()? deletePost;
 
   @override
@@ -62,13 +65,24 @@ class ContentCard extends StatelessWidget {
                 children: <Widget>[
                   ListTile(
                     // leading: Icon(Icons.album),
-                    leading: CircleAvatar(
-                      backgroundImage: NetworkImage(avatar??''),
+                    leading: GestureDetector(
+                      onTap: (){
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(userId!)));
+                      },
+                      child: CircleAvatar(
+                        backgroundImage: NetworkImage(avatar??''),
+                      ),
                     ),
-                    title: Text(
-                      card_title,
-                      overflow: TextOverflow.ellipsis, // 设置溢出时显示省略号
-                      maxLines: 2,
+
+                    title: GestureDetector(
+                      onTap: (){
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(postId!)));
+                      },
+                      child: Text(
+                        card_title,
+                        overflow: TextOverflow.ellipsis, // 设置溢出时显示省略号
+                        maxLines: 2,
+                      ),
                     ),
                     subtitle: Text(
                       card_content,
