@@ -17,6 +17,7 @@ class CarouselDemo extends StatelessWidget {
 
   @override
   Widget build(context) {
+    // TODO
     images =
         fileNames.map((file) => Image.network(file, fit: BoxFit.cover)).toList();
     return Center(

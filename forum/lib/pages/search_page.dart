@@ -60,7 +60,7 @@ class _SearchPageState extends State<SearchPage> with AutomaticKeepAliveClientMi
             if(res2.statusCode == 200) {
               String decodedString2 = utf8.decode(res2.bodyBytes);
               Map body2 = jsonDecode(decodedString2) as Map;
-              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body2['userAvatar'],username: body2['userName'],);
+              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body2['content']['userAvatar'],username: body2['content']['userName'],media_urls: i['urls'].cast<String>(),type: 'home',);
               setState(() {
                 content_cards.add(card);
               });

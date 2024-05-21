@@ -1,142 +1,96 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'dart:math';
+import 'package:forum/classes/localStorage.dart';
+import 'package:forum/constants.dart';
+import 'package:http/http.dart' as http;
 
-void main() => runApp(SlotMachineApp());
+void main() {
+  runApp(MyApp());
+}
 
-class SlotMachineApp extends StatelessWidget {
+class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Slot Machine',
-      home: SlotMachineScreen(),
+      title: 'Flutter Stream Example',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: StreamPage(),
     );
   }
 }
 
-class SlotMachineScreen extends StatefulWidget {
+class StreamPage extends StatefulWidget {
   @override
-  _SlotMachineScreenState createState() => _SlotMachineScreenState();
+  _StreamPageState createState() => _StreamPageState();
 }
 
-class _SlotMachineScreenState extends State<SlotMachineScreen> {
-  final GlobalKey<SlotMachineState> _slotMachineKey = GlobalKey();
+class _StreamPageState extends State<StreamPage> {
+  late StreamController<String> _streamController;
 
-  void _startSpin() {
-    _slotMachineKey.currentState?.startSpin();
+  @override
+  void initState() {
+    super.initState();
+    _streamController = StreamController<String>();
+    _startStreaming();
+  }
+
+  void _startStreaming() async {
+    var client = http.Client();
+    var url = Uri.parse('http://$BASEURL/api/ai/chat');
+    var requestBody = jsonEncode({
+      'userId': '123',
+      'content': 'hello'
+    });
+
+    var request = http.Request('POST', url)
+      ..headers['Content-Type'] = 'application/json'
+      ..body = requestBody;
+
+
+    request.headers.addAll({
+      'Authorization': 'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MjM0NTYiLCJpYXQiOjE3MTYyOTg0NDgsImV4cCI6MTcxNjMzNDQ0OH0.fYY_Y2Fy28rGhChlGiMn6QW65WIXMYz5w1eh1Dsk6jrvuHwJEA7DmB-Wh4XDis1g3zk_tCZY8ObnpuvDTUXg6g' ?? '',
+    });
+
+    var response = await client.send(request);
+    response.stream
+        .transform(utf8.decoder)
+        .transform(LineSplitter())
+        .listen((data) {
+      _streamController.add(data);
+    }, onError: (error) {
+      _streamController.addError(error);
+    }, onDone: () {
+      _streamController.close();
+    });
+  }
+
+  @override
+  void dispose() {
+    _streamController.close();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Slot Machine'),
+        title: Text('Stream Example'),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SlotMachine(
-              key: _slotMachineKey,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _startSpin,
-              child: Text('Spin'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class SlotMachine extends StatefulWidget {
-  SlotMachine({Key? key}) : super(key: key);
-
-  @override
-  SlotMachineState createState() => SlotMachineState();
-}
-
-class SlotMachineState extends State<SlotMachine> {
-  final List<String> symbols = ['🍒', '🍊', '🍋', '🍇', '🔔', '💎'];
-  late List<String> result;
-  late Timer _timer;
-  late Random _random;
-  bool spinning = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _random = Random();
-    result = List.generate(3, (index) => symbols[_random.nextInt(symbols.length)]);
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
-  void startSpin() {
-    if (!spinning) {
-      spinning = true;
-      _timer = Timer.periodic(Duration(milliseconds: 200), (timer) {
-        setState(() {
-          result.insert(0, result.removeLast());
-        });
-      });
-      // Simulate stopping after 3 seconds
-      Future.delayed(Duration(seconds: 3), stopSpin);
-    }
-  }
-
-  void stopSpin() {
-    _timer.cancel();
-    setState(() {
-      spinning = false;
-    });
-    // Check result and show alert for win
-    if (result[0] == result[1] && result[1] == result[2]) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Congratulations!'),
-            content: Text('You win!'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('OK'),
-              ),
-            ],
-          );
+      body: StreamBuilder<String>(
+        stream: _streamController.stream,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          } else {
+            return Center(child: Text('Data: ${snapshot.data}'));
+          }
         },
-      );
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        for (var i = 0; i < result.length; i++)
-          Container(
-            margin: EdgeInsets.all(8),
-            padding: EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.black),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              result[i],
-              style: TextStyle(fontSize: 40),
-            ),
-          ),
-      ],
+      ),
     );
   }
 }
