@@ -13,6 +13,7 @@ class ContentCard extends StatelessWidget {
     this.avatar,
     this.type,
     this.username,
+    this.deletePost,
   });
 
   final String title;
@@ -22,6 +23,7 @@ class ContentCard extends StatelessWidget {
   final List<String>? media_urls;
   final String? postId;
   final String? type;
+  final void Function()? deletePost;
 
   @override
   Widget build(BuildContext context) {
@@ -74,7 +76,7 @@ class ContentCard extends StatelessWidget {
                       maxLines: 2, // 设置最大行数
                     ),
                   ),
-                  if(media_urls != null)
+                  if(media_urls != null && media_urls.isNotEmpty)
                     SizedBox(
                       height: 200.0,
                       child: CarouselDemo(fileNames: media_urls,),
@@ -127,13 +129,18 @@ class ContentCard extends StatelessWidget {
       context: context,
       position: position,
       items: [
-        if(type != 'home')
+        if(type != 'home' && type != 'history')
           PopupMenuItem(
             child: ListTile(
               leading: Icon(Icons.delete),
               title: Text('删除'),
               onTap: () {
                 // 处理删除操作
+                if(deletePost != null){
+                  deletePost!();
+                }else{
+                  print('empty delete function!!!');
+                }
                 Navigator.pop(context);
               },
             ),

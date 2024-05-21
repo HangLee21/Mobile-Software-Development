@@ -1,19 +1,77 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:forum/components/card_list.dart';
 import 'package:forum/components/content_card.dart';
+import 'package:http/http.dart' as http;
+import '../classes/localStorage.dart';
+import '../url/user.dart';
 import 'navigation.dart';
 
-class History extends StatelessWidget{
+class History extends StatefulWidget{
+  @override
+  HistoryState createState()=>HistoryState();
+}
+
+class HistoryState extends State<History>{
   //TODO 获取历史记录
   List<ContentCard> content_cards = [
-    ContentCard(title: 'Test1', content: 'Content1', postId: '',),
-    ContentCard(title: 'Test2', content: 'Content2', postId: '',),
-    ContentCard(title: 'Test3', content: 'Content3', postId: '',),
-    ContentCard(title: 'Test4', content: 'The following example builds on the previous one. In addition to providing a minimum dimension for the child Column, an IntrinsicHeight widget is used to force the column to be exactly as big as its contents. This constraint combines with the ConstrainedBox constraints discussed previously to ensure that the column becomes either as big as viewport, or as big as the contents, whichever is biggest.Both constraints must be used to get the desired effect. If only the IntrinsicHeight was specified, then the column would not grow to fit the entire viewport when its children were smaller than the whole screen. If only the size of the viewport was used, then the Column would overflow if the children were bigger than the viewport.The widget that is to grow to fit the remaining space so provided is wrapped in an Expanded widget.This technique is quite expensive, as it more or less requires that the contents of the viewport be laid out twice (once to find their intrinsic dimensions, and once to actually lay them out). The number of widgets within the column should therefore be kept small. Alternatively, subsets of the children that have known dimensions can be wrapped in a SizedBox that has tight vertical constraints, so that the intrinsic sizing algorithm can short-circuit the computation when it reaches those parts of the subtree.', media_urls: [
-      'assets/images/jadeite.png',
-      'assets/images/1.jpg'
-    ], postId: '', ),
+    // ContentCard(title: 'Test1', content: 'Content1', postId: '',),
+    // ContentCard(title: 'Test2', content: 'Content2', postId: '',),
+    // ContentCard(title: 'Test3', content: 'Content3', postId: '',),
+    // ContentCard(title: 'Test4', content: 'The following example builds on the previous one. In addition to providing a minimum dimension for the child Column, an IntrinsicHeight widget is used to force the column to be exactly as big as its contents. This constraint combines with the ConstrainedBox constraints discussed previously to ensure that the column becomes either as big as viewport, or as big as the contents, whichever is biggest.Both constraints must be used to get the desired effect. If only the IntrinsicHeight was specified, then the column would not grow to fit the entire viewport when its children were smaller than the whole screen. If only the size of the viewport was used, then the Column would overflow if the children were bigger than the viewport.The widget that is to grow to fit the remaining space so provided is wrapped in an Expanded widget.This technique is quite expensive, as it more or less requires that the contents of the viewport be laid out twice (once to find their intrinsic dimensions, and once to actually lay them out). The number of widgets within the column should therefore be kept small. Alternatively, subsets of the children that have known dimensions can be wrapped in a SizedBox that has tight vertical constraints, so that the intrinsic sizing algorithm can short-circuit the computation when it reaches those parts of the subtree.', media_urls: [
+    //   'assets/images/jadeite.png',
+    //   'assets/images/1.jpg'
+    // ], postId: '', ),
   ];
+
+  CardList card_list = CardList(cards: []);
+
+  @override
+  void initState(){
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      getHistory();
+    });
+
+  }
+
+  Future<void> getHistory()async{
+    EasyLoading.show(status: '加载中');
+    List<ContentCard> _content_cards = [];
+    await requestGet('/api/info/post/view_post', {
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}'
+    },query: {
+      'userId': LocalStorage.getString('userId')
+    }).then((http.Response res){
+      if(res.statusCode == 200){
+        String decodedString1 = utf8.decode(res.bodyBytes);
+        Map body = jsonDecode(decodedString1);
+        LocalStorage.setString('token', body['token']);
+        List posts = body['posts'];
+        for(var post in posts){
+          requestGet('/api/user/get_user', {
+            'Authorization': 'Bearer ${LocalStorage.getString('token')}'
+          }, query: {
+            'userId': post['userId']
+          }).then((http.Response res2){
+            if(res2.statusCode == 200){
+              String decodedString2 = utf8.decode(res2.bodyBytes);
+              Map user =  jsonDecode(decodedString2)['content'];
+              ContentCard card = ContentCard(title: post['title'], content: post['content'], postId: post['postId'], avatar: user['userAvatar'], username: user['userName'],media_urls: post['urls'].cast<String>(),type: 'history',);
+              _content_cards.add(card);
+              setState(() {
+                card_list = CardList(cards: _content_cards,);
+              });
+            }
+          });
+        }
+      }
+      EasyLoading.dismiss();
+    });
+  }
+
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -22,9 +80,11 @@ class History extends StatelessWidget{
               '历史记录'
           )
       ),
-      body: Center(
-        child: CardList(cards: content_cards,),
-      ),
+      body: ListView(
+        children: [
+          card_list
+        ],
+      )
     );
   }
 }

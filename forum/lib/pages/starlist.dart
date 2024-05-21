@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:forum/components/card_list.dart';
 import 'package:forum/components/content_card.dart';
 import 'package:forum/url/user.dart';
@@ -33,14 +34,13 @@ class StarListState extends State<StarList>{
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       getStarList();
       print('content:$content_cards');
-
-
     });
 
   }
 
   Future<void> getStarList()async{
     List<ContentCard> _content_cards = [];
+    EasyLoading.show(status: '加载中');
     await requestGet('/api/info/post/star_post', {
       'Authorization': 'Bearer ${LocalStorage.getString('token')}'
     },query: {
@@ -64,7 +64,9 @@ class StarListState extends State<StarList>{
               Map user =  jsonDecode(decodedString2)['content'];
               print(user);
               List<String> urls = post['urls'].cast<String>();
-              ContentCard card = ContentCard(title: post['title'], content: post['content'], postId: post['postId'], avatar: user['userAvatar'], username: user['userName'],type: 'star',);
+              ContentCard card = ContentCard(title: post['title'], content: post['content'], postId: post['postId'], avatar: user['userAvatar'], username: user['userName'],media_urls: post['urls'].cast<String>(),type: 'star',deletePost: (){
+                deletePost(post['postId']);
+              },);
               _content_cards.add(card);
               print('_content$_content_cards');
               setState(() {
@@ -74,7 +76,27 @@ class StarListState extends State<StarList>{
           });
         }
       }
+      EasyLoading.dismiss();
     });
+  }
+
+  void deletePost(String postId)async{
+    EasyLoading.show(status: '删除中');
+    String? userId = LocalStorage.getString('userId');
+    requestDelete('/api/info/post/cancel_star', {
+      'userId': userId,
+      'postId': postId,
+    }, {
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}',
+      'Content-Type': 'application/json',
+    }).then((http.Response res){
+      if(res.statusCode == 200){
+        print('delete successfully');
+        getStarList();
+      }
+      EasyLoading.dismiss();
+    });
+
   }
 
   @override
@@ -85,7 +107,11 @@ class StarListState extends State<StarList>{
               '收藏'
           )
       ),
-      body: card_list,
+      body: ListView(
+        children: [
+          card_list
+        ],
+      )
     );
   }
 }
