@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:forum/components/content_card.dart';
 import 'package:forum/constants.dart';
 import 'package:forum/pages/workfield.dart';
@@ -49,6 +50,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       });
     });
     getSingleChildScrollView().then((result){
+
       setState(() {
         // print('setState');
         // print('result:${result}');
@@ -62,6 +64,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
 
   Future<List<CarouselCard>> getSingleChildScrollView()async{
     List<CarouselCard> _cards = cards;
+    EasyLoading.show(status: '加载中');
     await requestGet('/api/cos/community/recommend_works_with_urls',
         {
           'Authorization': 'Bearer ${LocalStorage.getString('token') ?? '43432'}',
@@ -74,16 +77,20 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         for(var post in posts){
           _cards.add(CarouselCard(postId: post['postId'], title: post['title'], content: post['content'], card_height: 240, asset: NetworkImage('https://android-1324918669.cos.ap-beijing.myqcloud.com/23c396f7b5f58d25/0123testtest1616/Materials/0.png')));
         }
+        EasyLoading.dismiss();
         return _cards;
       }
+      EasyLoading.dismiss();
       return _cards;
       }
     );
+    EasyLoading.dismiss();
     return _cards;
   }
 
   Future<List<ContentCard>> getRecommendWorks() async{
     List<ContentCard> _content_cards = content_cards;
+    EasyLoading.show(status: '加载中');
     await requestGet('/api/cos/community/recommend_works', {
       'Authorization': 'Bearer ${LocalStorage.getString('token') ?? '43432'}',
     },query: {
@@ -104,16 +111,19 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
               String decodedString2 = utf8.decode(res2.bodyBytes);
               Map body = jsonDecode(decodedString2) as Map;
               //print(body);
-              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['content']['userAvatar'],username: body['content']['userName'],media_urls: i['urls'].cast<String>(),type: 'home',);
+              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['content']['userAvatar'],username: body['content']['userName'],userId: body['content']['userId'],media_urls: i['urls'].cast<String>(),type: 'home',);
               _content_cards.add(card);
+              EasyLoading.dismiss();
               return _content_cards;
             }
+            EasyLoading.dismiss();
             return _content_cards;
           });
         }
       }
 
     });
+    EasyLoading.dismiss();
     return _content_cards;
   }
 

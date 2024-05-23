@@ -6,6 +6,7 @@ import 'package:forum/pages/AIChatPage.dart';
 import 'package:http/http.dart';
 import '../classes/notification_card.dart';
 import '../pages/notification.dart';
+import '../pages/personspace.dart';
 import '../pages/search_page.dart';
 import '../storage/notificationInfo_storage.dart';
 import '../theme/theme_data.dart';
@@ -77,8 +78,7 @@ class _SearchBarAppState extends State<SearchBarApp> {
           child: GestureDetector(
               onTap: () {
                 // 处理用户头像点击事件
-                // TODO
-                print('User avatar clicked!');
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(LocalStorage.getString('userId') ?? '')));
               },
               child: CircleAvatar(
                 radius: 25.0, // 设置半径为50.0，调整大小
@@ -89,7 +89,6 @@ class _SearchBarAppState extends State<SearchBarApp> {
         Padding(
           padding: EdgeInsets.symmetric(vertical: 30.0, horizontal: 65.0),
           child: SearchBar(
-            // TODO
             controller: _searchController,
             padding: const MaterialStatePropertyAll<EdgeInsets>(
                 EdgeInsets.symmetric(horizontal: 16.0)),
@@ -125,9 +124,7 @@ class _SearchBarAppState extends State<SearchBarApp> {
               foregroundColor: colorScheme.secondary,
               backgroundColor: colorScheme.background,
               onPressed: () {
-                //todo
-                //Navigator.of(context).push(MaterialPageRoute(builder: (context) => NotificationPage()));
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => AIChatPage(userId: 'ai_assistant',)));
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => NotificationPage()));
               },
               child: IconTheme(
                 data: IconThemeData(

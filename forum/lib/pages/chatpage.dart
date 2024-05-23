@@ -798,6 +798,32 @@ class _ChatPageState extends State<ChatPage>{
         'userId': LocalStorage.getString('userId') ?? '',
       });
 
+      DateTime now = DateTime.now().toLocal();
+      // 将时间格式化为字符串，精确到秒
+      // 转化时区
+      now = now.add(Duration(hours: 8));
+      String formattedTime = '${now.year}-${_twoDigits(now.month)}-${_twoDigits(now.day)} '
+          '${_twoDigits(now.hour)}:${_twoDigits(now.minute)}:${_twoDigits(now.second)}';
+      setState(() {
+        messages.insert(0, {
+          'name': widget.selfId,
+          'content': '正在发送中',
+          'me?': true,
+          'createdAt': formattedTime,
+          'status': SENDING_TYPE,
+          'show': true
+        });
+      });
+
+      if(messages.length > 1){
+        DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
+        DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
+        Duration difference = current.difference(previous);
+        if (difference.inMinutes <= 5) {
+          messages[0]['show'] = false;
+        }
+      }
+
       var response = await request.send();
       if (response.statusCode == 200) {
         var responseBody = await response.stream.bytesToString();
@@ -805,7 +831,15 @@ class _ChatPageState extends State<ChatPage>{
         var data = jsonDecode(responseBody);
         String url = data['content'][0];
         String content = "SINGLE_SENDING:${widget.selfId}:${widget.userId}:($picType)[$url]";
+        messages.removeAt(0);
         addMessage(content, 'image');
+      }
+      else{
+        var responseBody = await response.stream.bytesToString();
+        var data = jsonDecode(responseBody);
+        String content = "SINGLE_SENDING:${widget.selfId}:${widget.userId}:${data}]";
+        addErrorMessage(content);
+        print(response.statusCode);
       }
     }
   }
@@ -831,13 +865,39 @@ class _ChatPageState extends State<ChatPage>{
       });
 
       var response = await request.send();
-      print(response.statusCode);
+      DateTime now = DateTime.now().toLocal();
+      // 将时间格式化为字符串，精确到秒
+      // 转化时区
+      now = now.add(Duration(hours: 8));
+      String formattedTime = '${now.year}-${_twoDigits(now.month)}-${_twoDigits(now.day)} '
+          '${_twoDigits(now.hour)}:${_twoDigits(now.minute)}:${_twoDigits(now.second)}';
+      setState(() {
+        messages.insert(0, {
+          'name': widget.selfId,
+          'content': '正在发送中',
+          'me?': true,
+          'createdAt': formattedTime,
+          'status': SENDING_TYPE,
+          'show': true
+        });
+      });
+
+      if(messages.length > 1){
+        DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
+        DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
+        Duration difference = current.difference(previous);
+        if (difference.inMinutes <= 5) {
+          messages[0]['show'] = false;
+        }
+      }
+
       if (response.statusCode == 200) {
         var responseBody = await response.stream.bytesToString();
         LocalStorage.setString('token', json.decode(responseBody)['token']);
         var data = jsonDecode(responseBody);
         String url = data['content'][0];
         String content = "SINGLE_SENDING:${widget.selfId}:${widget.userId}:($videoType)[${url}]";
+        messages.removeAt(0);
         addMessage(content, 'video');
       }
       else{

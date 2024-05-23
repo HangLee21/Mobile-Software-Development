@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:forum/components/content_card.dart';
 import 'package:forum/constants.dart';
+import 'package:forum/pages/personspace.dart';
 import 'package:forum/pages/workfield.dart';
 import 'package:forum/url/user.dart';
 import 'package:http/http.dart' as http;
@@ -12,6 +13,7 @@ import 'package:forum/components/card_list.dart';
 import '../components/auto_switch_pageview.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../classes/localStorage.dart';
+import 'AIChatPage.dart';
 
 class User {
   final String name;
@@ -38,14 +40,7 @@ class _ActivityPageState extends State<ActivityPage> with AutomaticKeepAliveClie
   int pageIndex = 0;
   int pageSize = 10;
   final List<User> users = [
-    // User('Alice', 'https://example.com/avatar1.png'),
-    // User('Bob', 'https://example.com/avatar2.png'),
-    // User('Charlie', 'https://example.com/avatar3.png'),
-    // User('David', 'https://example.com/avatar4.png'),
-    // User('Eve', 'https://example.com/avatar5.png'),
-    // User('Frank', 'https://example.com/avatar6.png'),
-    // User('Grace', 'https://example.com/avatar7.png'),
-    // User('Heidi', 'https://example.com/avatar8.png'),
+    User('AI助手', 'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar.png', 'ai_assistant'),
   ];
   // SharedPreferences? sharedPreferences;
   @override
@@ -113,7 +108,7 @@ class _ActivityPageState extends State<ActivityPage> with AutomaticKeepAliveClie
             if(res2.statusCode == 200) {
               String decodedString2 = utf8.decode(res2.bodyBytes);
               Map body = jsonDecode(decodedString2) as Map;
-              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['content']['userAvatar'],username: body['content']['userName'],media_urls: i['urls'].cast<String>(),type: 'home',);
+              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['content']['userAvatar'],username: body['content']['userName'], userId: body['content']['userId'],media_urls: i['urls'].cast<String>(),type: 'home',);
               setState(() {
                 content_cards.add(card);
               });
@@ -165,10 +160,12 @@ class _ActivityPageState extends State<ActivityPage> with AutomaticKeepAliveClie
                               final user = users[index];
                               return GestureDetector(
                                 onTap: () {
-                                  // Handle item click
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Clicked on ${user.name}')),
-                                  );
+                                  if(user.userId == 'ai_assistant'){
+                                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => AIChatPage(userId: 'ai_assistant',)));
+                                  }
+                                  else{
+                                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(user.userId)));
+                                  }
                                 },
                                 child: Container(
                                   width: 70,

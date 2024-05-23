@@ -427,7 +427,7 @@ class _AIChatPageState extends State<AIChatPage>{
       setState(() {
         messages[0]['status'] = SUCCESSED_TYPE;
         messages.insert(0, {
-          'name': widget.userId,
+          'name': 'AI助手',
           'content': text,
           'me?': false,
           'createdAt': formattedTime,
@@ -453,6 +453,26 @@ class _AIChatPageState extends State<AIChatPage>{
         _streamController.close();
       });
     }
+  }
+
+  void clearHistory(){
+    requestDelete("/api/ai/clear", {
+
+    },{
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? '',
+    },query: {
+      'userId': LocalStorage.getString('userId')
+    }).then((http.Response res) => {
+      if(res.statusCode == 200){
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              duration: Duration(seconds: 1),
+              content: Text('上下文已清除'),
+              backgroundColor: Color(0xFF838CFF),
+          ),
+        )
+      }
+    });
   }
 
 
@@ -539,8 +559,7 @@ class _AIChatPageState extends State<AIChatPage>{
                           color: Color(0xFF838CFF),
                           iconSize: 30, // 调整图标大小
                           onPressed: () {
-                            // TODO: 重新录制
-
+                            clearHistory();
                           },
                         ),
                       ],
