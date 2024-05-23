@@ -89,7 +89,6 @@ class _AccountState extends State<AccountPage>{
             const SizedBox(height: 20),
             const AccountPageCard('收藏'),
             const AccountPageCard('我的创作'),
-            const AccountPageCard('我的关注'),
             const AccountPageCard('历史记录'),
             const AccountPageCard('设置'),
           ],

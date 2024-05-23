@@ -58,17 +58,13 @@ class StarListState extends State<StarList>{
             'userId': post['userId']
           }).then((http.Response res2){
             if(res2.statusCode == 200){
-              print(2000);
-              print(post);
               String decodedString2 = utf8.decode(res2.bodyBytes);
               Map user =  jsonDecode(decodedString2)['content'];
-              print(user);
               List<String> urls = post['urls'].cast<String>();
               ContentCard card = ContentCard(title: post['title'], content: post['content'], postId: post['postId'], avatar: user['userAvatar'], username: user['userName'],userId: user['userId'],media_urls: post['urls'].cast<String>(),type: 'star',deletePost: (){
                 deletePost(post['postId']);
               },);
               _content_cards.add(card);
-              print('_content$_content_cards');
               setState(() {
                 card_list = CardList(cards: _content_cards,);
               });
