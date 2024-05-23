@@ -67,7 +67,7 @@ class ContentCard extends StatelessWidget {
                     // leading: Icon(Icons.album),
                     leading: GestureDetector(
                       onTap: (){
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(userId!)));
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(userId)));
                       },
                       child: CircleAvatar(
                         backgroundImage: NetworkImage(avatar??''),
@@ -76,7 +76,7 @@ class ContentCard extends StatelessWidget {
 
                     title: GestureDetector(
                       onTap: (){
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(postId!)));
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(userId)));
                       },
                       child: Text(
                         card_title,
@@ -143,7 +143,7 @@ class ContentCard extends StatelessWidget {
       context: context,
       position: position,
       items: [
-        if(type != 'home' && type != 'history')
+        if(type != 'home' && type != 'history' && type != 'personal')
           PopupMenuItem(
             child: ListTile(
               leading: Icon(Icons.delete),

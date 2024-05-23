@@ -64,7 +64,7 @@ class StarListState extends State<StarList>{
               Map user =  jsonDecode(decodedString2)['content'];
               print(user);
               List<String> urls = post['urls'].cast<String>();
-              ContentCard card = ContentCard(title: post['title'], content: post['content'], postId: post['postId'], avatar: user['userAvatar'], username: user['userName'],media_urls: post['urls'].cast<String>(),type: 'star',deletePost: (){
+              ContentCard card = ContentCard(title: post['title'], content: post['content'], postId: post['postId'], avatar: user['userAvatar'], username: user['userName'],userId: user['userId'],media_urls: post['urls'].cast<String>(),type: 'star',deletePost: (){
                 deletePost(post['postId']);
               },);
               _content_cards.add(card);

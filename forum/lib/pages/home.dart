@@ -111,7 +111,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
               String decodedString2 = utf8.decode(res2.bodyBytes);
               Map body = jsonDecode(decodedString2) as Map;
               //print(body);
-              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['content']['userAvatar'],username: body['content']['userName'],media_urls: i['urls'].cast<String>(),type: 'home',);
+              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['content']['userAvatar'],username: body['content']['userName'],userId: body['content']['userId'],media_urls: i['urls'].cast<String>(),type: 'home',);
               _content_cards.add(card);
               EasyLoading.dismiss();
               return _content_cards;

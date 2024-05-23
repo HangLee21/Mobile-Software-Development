@@ -59,7 +59,7 @@ class HistoryState extends State<History>{
             if(res2.statusCode == 200){
               String decodedString2 = utf8.decode(res2.bodyBytes);
               Map user =  jsonDecode(decodedString2)['content'];
-              ContentCard card = ContentCard(title: post['title'], content: post['content'], postId: post['postId'], avatar: user['userAvatar'], username: user['userName'],media_urls: post['urls'].cast<String>(),type: 'history',);
+              ContentCard card = ContentCard(title: post['title'], content: post['content'], postId: post['postId'], avatar: user['userAvatar'], username: user['userName'],userId: user['userId'],media_urls: post['urls'].cast<String>(),type: 'history',);
               _content_cards.add(card);
               setState(() {
                 card_list = CardList(cards: _content_cards,);

@@ -3,6 +3,7 @@ import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
 import 'package:forum/components/content_card.dart';
 import 'package:forum/constants.dart';
+import 'package:forum/pages/personspace.dart';
 import 'package:forum/pages/workfield.dart';
 import 'package:forum/url/user.dart';
 import 'package:http/http.dart' as http;
@@ -113,7 +114,7 @@ class _ActivityPageState extends State<ActivityPage> with AutomaticKeepAliveClie
             if(res2.statusCode == 200) {
               String decodedString2 = utf8.decode(res2.bodyBytes);
               Map body = jsonDecode(decodedString2) as Map;
-              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['content']['userAvatar'],username: body['content']['userName'],media_urls: i['urls'].cast<String>(),type: 'home',);
+              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['content']['userAvatar'],username: body['content']['userName'], userId: body['content']['userId'],media_urls: i['urls'].cast<String>(),type: 'home',);
               setState(() {
                 content_cards.add(card);
               });
@@ -166,9 +167,10 @@ class _ActivityPageState extends State<ActivityPage> with AutomaticKeepAliveClie
                               return GestureDetector(
                                 onTap: () {
                                   // Handle item click
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text('Clicked on ${user.name}')),
-                                  );
+                                  // ScaffoldMessenger.of(context).showSnackBar(
+                                  //   SnackBar(content: Text('Clicked on ${user.name}')),
+                                  // );
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(user.userId)));
                                 },
                                 child: Container(
                                   width: 70,
