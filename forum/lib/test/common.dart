@@ -1,184 +1,101 @@
-import 'dart:math';
-
+import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:forum/classes/localStorage.dart';
+import 'package:forum/constants.dart';
+import 'package:http/http.dart' as http;
 
-class SeekBar extends StatefulWidget {
-  final Duration duration;
-  final Duration position;
-  final Duration bufferedPosition;
-  final ValueChanged<Duration>? onChanged;
-  final ValueChanged<Duration>? onChangeEnd;
-
-  const SeekBar({
-    Key? key,
-    required this.duration,
-    required this.position,
-    required this.bufferedPosition,
-    this.onChanged,
-    this.onChangeEnd,
-  }) : super(key: key);
-
-  @override
-  SeekBarState createState() => SeekBarState();
+void main() {
+  runApp(MyApp());
 }
 
-class SeekBarState extends State<SeekBar> {
-  double? _dragValue;
-  late SliderThemeData _sliderThemeData;
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Stream Example',
+      theme: ThemeData(
+        primarySwatch: Colors.blue,
+      ),
+      home: StreamPage(),
+    );
+  }
+}
+
+class StreamPage extends StatefulWidget {
+  @override
+  _StreamPageState createState() => _StreamPageState();
+}
+
+class _StreamPageState extends State<StreamPage> {
+  late StreamController<String> _streamController;
+  late String text = '';
+  @override
+  void initState() {
+    super.initState();
+    _streamController = StreamController<String>();
+    _startStreaming();
+  }
+
+  void _startStreaming() async {
+    var client = http.Client();
+    var url = Uri.parse('http://$BASEURL/api/ai/chat?userId=test23456&content=请问你和文心一言的关系');
+    var requestBody = jsonEncode({
+      'userId': 'test23456',
+      'content': 'hello'
+    });
+
+    var request = http.Request('POST', url)
+      ..headers['Content-Type'] = 'application/json'
+      ..body = requestBody;
+
+
+    request.headers.addAll({
+      'Authorization': 'Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ0ZXN0MjM0NTYiLCJpYXQiOjE3MTYzNDQ5NzEsImV4cCI6MTcxNjM4MDk3MX0.m4dytIfon-hFTqVJlk3LaBpNnXBc9PCj6rrgH4O3gGlLPxPGmaiCKcFEnrR1fefMF8IeHMZBnnPeqdK-rsRtsA' ?? '',
+    });
+
+    var response = await client.send(request);
+    print(response.statusCode);
+
+    response.stream
+        .transform(utf8.decoder)
+        .transform(LineSplitter())
+        .listen((data) {
+      if(data.isNotEmpty){
+        text += data.trim().substring(5);
+      }
+      _streamController.add(data);
+    }, onError: (error) {
+      _streamController.addError(error);
+    }, onDone: () {
+      _streamController.close();
+    });
+  }
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-
-    _sliderThemeData = SliderTheme.of(context).copyWith(
-      trackHeight: 2.0,
-    );
+  void dispose() {
+    _streamController.close();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        SliderTheme(
-          data: _sliderThemeData.copyWith(
-            thumbShape: HiddenThumbComponentShape(),
-            activeTrackColor: Colors.blue.shade100,
-            inactiveTrackColor: Colors.grey.shade300,
-          ),
-          child: ExcludeSemantics(
-            child: Slider(
-              min: 0.0,
-              max: widget.duration.inMilliseconds.toDouble(),
-              value: min(widget.bufferedPosition.inMilliseconds.toDouble(),
-                  widget.duration.inMilliseconds.toDouble()),
-              onChanged: (value) {
-                setState(() {
-                  _dragValue = value;
-                });
-                if (widget.onChanged != null) {
-                  widget.onChanged!(Duration(milliseconds: value.round()));
-                }
-              },
-              onChangeEnd: (value) {
-                if (widget.onChangeEnd != null) {
-                  widget.onChangeEnd!(Duration(milliseconds: value.round()));
-                }
-                _dragValue = null;
-              },
-            ),
-          ),
-        ),
-        SliderTheme(
-          data: _sliderThemeData.copyWith(
-            inactiveTrackColor: Colors.transparent,
-          ),
-          child: Slider(
-            min: 0.0,
-            max: widget.duration.inMilliseconds.toDouble(),
-            value: min(_dragValue ?? widget.position.inMilliseconds.toDouble(),
-                widget.duration.inMilliseconds.toDouble()),
-            onChanged: (value) {
-              setState(() {
-                _dragValue = value;
-              });
-              if (widget.onChanged != null) {
-                widget.onChanged!(Duration(milliseconds: value.round()));
-              }
-            },
-            onChangeEnd: (value) {
-              if (widget.onChangeEnd != null) {
-                widget.onChangeEnd!(Duration(milliseconds: value.round()));
-              }
-              _dragValue = null;
-            },
-          ),
-        ),
-        Positioned(
-          right: 16.0,
-          bottom: 0.0,
-          child: Text(
-              RegExp(r'((^0*[1-9]\d*:)?\d{2}:\d{2})\.\d+$')
-                  .firstMatch("$_remaining")
-                  ?.group(1) ??
-                  '$_remaining',
-              style: Theme.of(context).textTheme.bodySmall),
-        ),
-      ],
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Stream Example'),
+      ),
+      body: StreamBuilder<String>(
+        stream: _streamController.stream,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          } else {
+            return Center(child: Text('${text}'));
+          }
+        },
+      ),
     );
   }
-
-  Duration get _remaining => widget.duration - widget.position;
 }
-
-class HiddenThumbComponentShape extends SliderComponentShape {
-  @override
-  Size getPreferredSize(bool isEnabled, bool isDiscrete) => Size.zero;
-
-  @override
-  void paint(
-      PaintingContext context,
-      Offset center, {
-        required Animation<double> activationAnimation,
-        required Animation<double> enableAnimation,
-        required bool isDiscrete,
-        required TextPainter labelPainter,
-        required RenderBox parentBox,
-        required SliderThemeData sliderTheme,
-        required TextDirection textDirection,
-        required double value,
-        required double textScaleFactor,
-        required Size sizeWithOverflow,
-      }) {}
-}
-
-class PositionData {
-  final Duration position;
-  final Duration bufferedPosition;
-  final Duration duration;
-
-  PositionData(this.position, this.bufferedPosition, this.duration);
-}
-
-void showSliderDialog({
-  required BuildContext context,
-  required String title,
-  required int divisions,
-  required double min,
-  required double max,
-  String valueSuffix = '',
-  // TODO: Replace these two by ValueStream.
-  required double value,
-  required Stream<double> stream,
-  required ValueChanged<double> onChanged,
-}) {
-  showDialog<void>(
-    context: context,
-    builder: (context) => AlertDialog(
-      title: Text(title, textAlign: TextAlign.center),
-      content: StreamBuilder<double>(
-        stream: stream,
-        builder: (context, snapshot) => SizedBox(
-          height: 100.0,
-          child: Column(
-            children: [
-              Text('${snapshot.data?.toStringAsFixed(1)}$valueSuffix',
-                  style: const TextStyle(
-                      fontFamily: 'Fixed',
-                      fontWeight: FontWeight.bold,
-                      fontSize: 24.0)),
-              Slider(
-                divisions: divisions,
-                min: min,
-                max: max,
-                value: snapshot.data ?? value,
-                onChanged: onChanged,
-              ),
-            ],
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-T? ambiguate<T>(T? value) => value;

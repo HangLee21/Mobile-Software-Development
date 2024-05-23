@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:forum/classes/localStorage.dart';
+import 'package:forum/pages/AIChatPage.dart';
 import 'package:http/http.dart';
 import '../classes/notification_card.dart';
 import '../pages/notification.dart';
@@ -124,7 +125,9 @@ class _SearchBarAppState extends State<SearchBarApp> {
               foregroundColor: colorScheme.secondary,
               backgroundColor: colorScheme.background,
               onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => NotificationPage()));
+                //todo
+                //Navigator.of(context).push(MaterialPageRoute(builder: (context) => NotificationPage()));
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => AIChatPage(userId: 'ai_assistant',)));
               },
               child: IconTheme(
                 data: IconThemeData(
