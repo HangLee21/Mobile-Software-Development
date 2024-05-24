@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:forum/pages/favorite.dart';
 import 'package:forum/pages/history.dart';
 import 'package:forum/pages/settings.dart';
 import 'package:forum/pages/starlist.dart';
@@ -10,14 +9,12 @@ import 'package:forum/theme/theme_data.dart';
 Map iconDict = const {
   '收藏': Icons.star,
   '我的创作': Icons.edit,
-  '我的关注': Icons.favorite_rounded,
   '历史记录': Icons.history,
   '设置': Icons.settings,
 };
 Map colorDict =  {
   '收藏': Colors.yellow[600],
   '我的创作': Colors.blue,
-  '我的关注': Colors.red,
   '历史记录': Colors.black,
   '设置': Colors.grey,
 };
@@ -25,7 +22,6 @@ Map colorDict =  {
 Map pageDict = {
   '收藏': StarList(),
   '我的创作': WorkList(),
-  '我的关注': FavoriteList(),
   '历史记录': History(),
   '设置': Settings(),
 };
