@@ -8,6 +8,7 @@ import 'package:forum/classes/localStorage.dart';
 import 'package:forum/components/carousel.dart';
 import 'package:forum/components/commentcard.dart';
 import 'package:forum/url/user.dart';
+import 'package:like_button/like_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_easyloading/flutter_easyloading.dart';
@@ -397,6 +398,28 @@ class _PostState extends State<PostPage>{
     }
     });
   }
+  Future<bool> onLikeButtonTapped(bool isLiked) async{
+    setState(() {
+      if(liked == true){
+        cancelLike();
+      }else{
+        addLike();
+      }
+    });
+    return !isLiked;
+  }
+
+  Future<bool> onStarButtonTapped(bool isLiked) async{
+    setState(() {
+      if(stared == true){
+        cancelStar();
+      }else{
+        addStar();
+      }
+    });
+    return !isLiked;
+  }
+
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -477,7 +500,6 @@ class _PostState extends State<PostPage>{
                               ],
                             )
                             ,
-                            //TODO 评论区
                             const Divider(height: 20,),
                             for(var i in comments)
                               CommentCard(i['avatar'], i['username'], i['content'], i['likes'], i['time'], i['commentId'],i['liked'],i['urls']),
@@ -571,17 +593,33 @@ class _PostState extends State<PostPage>{
                       duration: Duration(milliseconds: 300),
                       child: AnimatedSwitcher(
                           duration: Duration(milliseconds: 200),
-                          child: IconButton(
-                            onPressed: (){
-                              setState(() {
-                                if(liked == true){
-                                  cancelLike();
-                                }else{
-                                  addLike();
-                                }
-                              });
-                            },
-                            icon: Icon(liked?Icons.favorite:Icons.favorite_border),key: ValueKey<bool>(liked),),
+                          child: LikeButton(
+                              isLiked: liked,
+                              circleColor:
+                              CircleColor(start: Color(0xff00ddff), end: Color(0xff0099cc)),
+                              bubblesColor: BubblesColor(
+                                dotPrimaryColor: Color(0xff33b5e5),
+                                dotSecondaryColor: Color(0xff0099cc),
+                              ),
+                              likeBuilder: (bool isLiked) {
+                                return Icon(
+                                  Icons.favorite,
+                                  color: isLiked ? Colors.redAccent : Colors.grey,
+                                );
+                              },
+                            onTap: onLikeButtonTapped
+                          ),
+                          // child: IconButton(
+                          //   onPressed: (){
+                          //     setState(() {
+                          //       if(liked == true){
+                          //         cancelLike();
+                          //       }else{
+                          //         addLike();
+                          //       }
+                          //     });
+                          //   },
+                          //   icon: Icon(liked?Icons.favorite:Icons.favorite_border),key: ValueKey<bool>(liked),),
                         )
                   ),
                   AnimatedContainer(
@@ -601,17 +639,33 @@ class _PostState extends State<PostPage>{
                       duration: Duration(milliseconds: 150),
                       child: AnimatedSwitcher(
                           duration: Duration(milliseconds: 200),
-                          child: IconButton(
-                            onPressed: (){
-                              setState(() {
-                                if(stared == true){
-                                  cancelStar();
-                                }else{
-                                  addStar();
-                                }
-                              });
+                        child: LikeButton(
+                            isLiked: stared,
+                            circleColor:
+                            CircleColor(start: Color(0xff00ddff), end: Color(0xff0099cc)),
+                            bubblesColor: BubblesColor(
+                              dotPrimaryColor: Color(0xff33b5e5),
+                              dotSecondaryColor: Color(0xff0099cc),
+                            ),
+                            likeBuilder: (bool isLiked) {
+                              return Icon(
+                                Icons.star,
+                                color: isLiked ? Colors.amber : Colors.grey,
+                              );
                             },
-                            icon: Icon(stared?Icons.star:Icons.star_border),key: ValueKey<bool>(stared),),
+                            onTap: onStarButtonTapped
+                        ),
+                          // child: IconButton(
+                          //   onPressed: (){
+                          //     setState(() {
+                          //       if(stared == true){
+                          //         cancelStar();
+                          //       }else{
+                          //         addStar();
+                          //       }
+                          //     });
+                          //   },
+                          //   icon: Icon(stared?Icons.star:Icons.star_border),key: ValueKey<bool>(stared),),
                         )
                   ),
                   AnimatedContainer(

@@ -55,6 +55,7 @@ dependencies:
   flutter_chat_ui: ^1.6.6
   image_picker: ^1.1.1
   open_filex: ^4.4.0
+  like_button: ^2.0.5
 
 dev_dependencies:
   flutter_test:

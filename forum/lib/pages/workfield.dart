@@ -15,6 +15,7 @@ import 'package:better_player/better_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
 import '../constants.dart';
+import 'AIChatPage.dart';
 
 class WorkField extends StatefulWidget{
   final String title;
@@ -471,9 +472,38 @@ class _WorkFieldState extends State<WorkField>{
                 fontSize:15
             ),
           ),)
+
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.question_answer_outlined),
+        ///点击响应事
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => AIChatPage(userId: 'ai_assistant',)));
+        },
+        ///长按提示
+        tooltip: "AI助手",
+        ///设置悬浮按钮的背景
+        heroTag: 'other',
+      ),
+      floatingActionButtonLocation: CustomFloatingActionButtonLocation(),
     );
   }
+}
 
+class CustomFloatingActionButtonLocation extends FloatingActionButtonLocation {
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    // 计算屏幕宽度和高度
+    double scaffoldWidth = scaffoldGeometry.scaffoldSize.width;
+    double scaffoldHeight = scaffoldGeometry.scaffoldSize.height;
+
+    // 计算按钮的水平位置（右侧）
+    double fabX = scaffoldWidth - scaffoldGeometry.minInsets.right - kFloatingActionButtonMargin - scaffoldGeometry.floatingActionButtonSize.width ;
+
+    // 计算按钮的垂直位置（屏幕中间）
+    double fabY = scaffoldHeight / 2 - scaffoldGeometry.floatingActionButtonSize.height / 2;
+
+    return Offset(fabX, fabY);
+  }
 }
