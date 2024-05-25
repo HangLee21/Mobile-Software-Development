@@ -1,9 +1,24 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:forum/classes/localStorage.dart';
+import 'package:forum/pages/settings.dart';
+import 'package:forum/url/user.dart';
+import 'package:http/http.dart' as http;
 import 'package:pinput/pinput.dart';
+import 'package:top_snackbar_flutter/top_snack_bar.dart';
+
+import 'login.dart';
 
 class PinputPage extends StatelessWidget{
   final String email;
-  const PinputPage({super.key,required this.email});
+  final String type;
+  final String username;
+  final String userId;
+  final String password1;
+  final String password2;
+  const PinputPage(this.username, this.userId, this.password1, this.password2,{super.key,required this.email,required this.type});
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -14,7 +29,7 @@ class PinputPage extends StatelessWidget{
       ),
       body: FractionallySizedBox(
         widthFactor: 1,
-        child: PinputExample(email: email,),
+        child: PinputExample(type,username, userId,password1,password2 , email: email,),
       ),
     );
   }
@@ -24,7 +39,12 @@ class PinputPage extends StatelessWidget{
 /// For more examples check out the demo directory
 class PinputExample extends StatefulWidget {
   final String email;
-  const PinputExample({Key? key,required this.email}) : super(key: key);
+  final String type;
+  final String username;
+  final String userId;
+  final String password1;
+  final String password2;
+  const PinputExample(this.type, this.username,this.userId,this.password1,this.password2, {Key? key,required this.email}) : super(key: key);
 
   @override
   State<PinputExample> createState() => _PinputExampleState();
@@ -34,6 +54,78 @@ class _PinputExampleState extends State<PinputExample> {
   final pinController = TextEditingController();
   final focusNode = FocusNode();
   final formKey = GlobalKey<FormState>();
+  bool bingo = false;
+  
+  @override
+  void initState(){
+    super.initState();
+    sendCode();
+    
+  }
+  
+  void sendCode()async{
+    requestPost('/api/user/send_code', {}, {},query: {
+      'email': widget.email
+    }).then((http.Response res){
+      if(res.statusCode != 200){
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('验证码发送失败')));
+      }
+    });
+  }
+
+  void complete(String pin)async{
+    requestGet('/api/user/verify_code', {}, query: {
+      'email': widget.email,
+      'code': pin,
+    }).then((http.Response res) {
+      print('bingo:$bingo');
+      print('code:${res.statusCode}');
+      if (res.statusCode == 200) {
+        print('type:${widget.type}');
+        if(widget.type == 'signup') {
+          requestPost('/api/user/register',{
+            'userId': widget.userId,
+            'userAvatar': 'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png',
+            'userEmail': widget.email,
+            'userPassword': widget.password1,
+            'userName': widget.username
+          },{}).then((http.Response res2){
+            if(res2.statusCode == 200){
+              print('enter');
+              setState(() {
+                bingo = true;
+              });
+              EasyLoading.showSuccess('注册成功');
+              Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => LoginLayout()),(route) => false);
+            }
+          });
+        }else if(widget.type == 'changepassword'){
+          requestPost('/api/account/change_password',{
+            'userId': LocalStorage.getString('userId'),
+            'oldPassword': widget.password1,
+            'newPassword': widget.password2
+          },{
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ${LocalStorage.getString('token')}'
+          }).then((http.Response res2){
+            if(res2.statusCode == 200){
+              EasyLoading.showSuccess('修改成功');
+
+            }else{
+              EasyLoading.showSuccess('修改失败');
+            }
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => Settings()));
+          });
+        }
+      } else {
+        bingo = false;
+      }
+      pinController.text = pinController.text;
+    });
+
+
+  }
 
   @override
   void dispose() {
@@ -41,6 +133,8 @@ class _PinputExampleState extends State<PinputExample> {
     focusNode.dispose();
     super.dispose();
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -85,9 +179,17 @@ class _PinputExampleState extends State<PinputExample> {
               AndroidSmsAutofillMethod.smsUserConsentApi,
               listenForMultipleSmsOnAndroid: true,
               defaultPinTheme: defaultPinTheme,
+              pinputAutovalidateMode: PinputAutovalidateMode.onSubmit,
               separatorBuilder: (index) => const SizedBox(width: 8),
               validator: (value) {
-                return value == '2222' ? null : 'Pin is incorrect';
+                valid()async{
+                  await Future.delayed(Duration(milliseconds: 10));
+                  return bingo?null:'Pin is incorrect';
+                }
+                valid().then((str){
+                  return str;
+                });
+
               },
               // onClipboardFound: (value) {
               //   debugPrint('onClipboardFound: $value');
@@ -96,6 +198,7 @@ class _PinputExampleState extends State<PinputExample> {
               hapticFeedbackType: HapticFeedbackType.lightImpact,
               onCompleted: (pin) {
                 debugPrint('onCompleted: $pin');
+                complete(pin);
               },
               onChanged: (value) {
                 debugPrint('onChanged: $value');
@@ -131,8 +234,7 @@ class _PinputExampleState extends State<PinputExample> {
           ),
           TextButton(
             onPressed: () {
-              // focusNode.unfocus();
-              // formKey.currentState!.validate();
+              sendCode();
             },
             child: const Text('Resend'),
           ),

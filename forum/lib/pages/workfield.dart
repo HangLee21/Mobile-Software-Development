@@ -5,6 +5,7 @@ import 'dart:typed_data';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:forum/classes/localStorage.dart';
 import 'package:forum/pages/navigation.dart';
 import 'package:forum/pages/postpage.dart';
 import 'package:forum/url/user.dart';
@@ -32,7 +33,6 @@ class _WorkFieldState extends State<WorkField>{
   int materialCount = 5;
   String postId = '';
   List materials = [];
-  SharedPreferences? sharedPreferences;
   @override
   void initState(){
     super.initState();
@@ -40,17 +40,24 @@ class _WorkFieldState extends State<WorkField>{
     content = widget.content;
     materials = widget.materials;
     materialCount = materials.length + 1;
-    _initLocalStorage();
     _initPostId();
-  }
-
-  void _initLocalStorage()async{
-    sharedPreferences = await SharedPreferences.getInstance();
   }
 
   void _initPostId() async{
     if(postId == ''){
-
+      requestGet('/api/cos/get_draftId', {
+        'Authorization': 'Bearer ${LocalStorage.getString('token')}',
+      },query:{
+        'userId': LocalStorage.getString('userId')
+      }).then((http.Response res){
+        if(res.statusCode == 200){
+          Map body = json.decode(res.body);
+          setState(() {
+            postId = body['content'];
+            print('postId:$postId');
+          });
+        }
+      });
     }
   }
   void _addMaterial() async{
@@ -69,18 +76,21 @@ class _WorkFieldState extends State<WorkField>{
       );
       request.headers.addAll({
         'Content-Type': 'multipart/form-data',
-        'Authorization': sharedPreferences?.getString('token') ?? '',
+        'Authorization': 'Bearer ${LocalStorage.getString('token')}',
       });
       request.fields.addAll({
-        'userId': sharedPreferences?.getString('userId') ?? '',
+        'userId': LocalStorage.getString('userId') ?? '',
+        'postId': postId
       });
 
       var response = await request.send();
+      print("code:${response.statusCode}");
       if(response.statusCode == 200){
-        print("addMaterial");
+
         var responseBody = await response.stream.bytesToString();
-        sharedPreferences?.setString('token', json.decode(responseBody)['token']);
+        LocalStorage.setString('token', json.decode(responseBody)['token']);
         String url = json.decode(responseBody)['content'];
+        print('url:$url');
         setState(() {
           materials = [...materials, url];
           materialCount = materials.length + 1;
@@ -102,17 +112,17 @@ class _WorkFieldState extends State<WorkField>{
 
       },
       {
-        'Authorization':'Bearer ${sharedPreferences?.getString('token')}'
+        'Authorization':'Bearer ${LocalStorage.getString('token')}'
       },
       query: {
-        'userId':sharedPreferences?.getString('userId'),
+        'userId':LocalStorage.getString('userId'),
         'postId': postId,
         'filename': filename
       }
     ).then((http.Response res){
       if(res.statusCode == 200){
         print('delete');
-        sharedPreferences?.setString('token', json.decode(res.body)['token']);
+        LocalStorage.setString('token', json.decode(res.body)['token']);
         setState(() {
           materials.removeAt(index);
           materialCount = materials.length + 1;
@@ -121,11 +131,18 @@ class _WorkFieldState extends State<WorkField>{
     });
   }
 
-  void showMaterial(){
+  void showMaterial(int index){
     //TODO 添加图片dialog
-    showDialog(context: context, builder: (context){
-      return BetterPlayer.network('https://prod-streaming-video-msn-com.akamaized.net/a8c412fa-f696-4ff2-9c76-e8ed9cdffe0f/604a87fc-e7bc-463e-8d56-cde7e661d690.mp4');
-    });
+    showDialog(
+      context: context,
+      builder: (context){
+        if(materials[index].split('.')[materials[index].split('.').length - 1] == 'png' || materials[index].split('.')[materials[index].split('.').length - 1] == 'jpg'){
+          return Image.network(materials[index]);
+        }else{
+          return BetterPlayer.network(materials[index]);
+        }
+      }
+    );
   }
 
   Future<Uint8List?> getThumbnail(String videoUrl) async {
@@ -145,7 +162,9 @@ class _WorkFieldState extends State<WorkField>{
       return Stack(
           children: [
             GestureDetector(
-              onTap: showMaterial,
+              onTap: (){
+                showMaterial(index);
+              },
               child: Container(
                 width: 80,
                 height: 80,
@@ -154,43 +173,24 @@ class _WorkFieldState extends State<WorkField>{
                   child: ClipRRect(
                       borderRadius: BorderRadius.circular(0),
                       child:
-                      // materials[index].split('.')[materials[index].split('.').length] == 'png' || materials[index].split('.')[materials[index].split('.').length] == 'jpg'?
-                      // Image.network(
-                      //     materials[index],
-                      //     width: 80,
-                      //     height: 80
-                      // )
-                      //     :FutureBuilder<Uint8List?>(
-                      //   future: getThumbnail('https://v-cdn.zjol.com.cn/280443.mp4'),
-                      //   builder: (context, snapshot) {
-                      //     if (snapshot.connectionState == ConnectionState.waiting) {
-                      //       return CircularProgressIndicator(); // 正在加载
-                      //     } else if (snapshot.hasError) {
-                      //       return Text('Error: ${snapshot.error}'); // 发生错误
-                      //     } else if (snapshot.hasData && snapshot.data != null) {
-                      //       return Image.memory(
-                      //           snapshot.data!,
-                      //           width: 80,
-                      //           height: 80,
-                      //       ); // 显示缩略图
-                      //     } else {
-                      //       return Text('No Thumbnail Available'); // 没有缩略图
-                      //     }
-                      //   },
-                      // ),
-                      FutureBuilder<Uint8List?>(
-                        future: getThumbnail('https://v-cdn.zjol.com.cn/280443.mp4'),
+                      materials[index].split('.')[materials[index].split('.').length - 1] == 'png' || materials[index].split('.')[materials[index].split('.').length - 1] == 'jpg'?
+                      Image.network(
+                          materials[index],
+                          width: 80,
+                          height: 80
+                      )
+                          :FutureBuilder<Uint8List?>(
+                        future: getThumbnail(materials[index]),
                         builder: (context, snapshot) {
                           if (snapshot.connectionState == ConnectionState.waiting) {
                             return CircularProgressIndicator(); // 正在加载
                           } else if (snapshot.hasError) {
-                            print('Error: ${snapshot.error}');
                             return Text('Error: ${snapshot.error}'); // 发生错误
                           } else if (snapshot.hasData && snapshot.data != null) {
                             return Image.memory(
-                              snapshot.data!,
-                              width: 80,
-                              height: 80,
+                                snapshot.data!,
+                                width: 80,
+                                height: 80,
                             ); // 显示缩略图
                           } else {
                             return Text('No Thumbnail Available'); // 没有缩略图
@@ -276,13 +276,13 @@ class _WorkFieldState extends State<WorkField>{
           '/api/cos/upload_work',
           {
             'title': title,
-            'userId': sharedPreferences?.getString('userId'),
+            'userId': LocalStorage.getString('userId'),
             'content': content,
             'postId': postId
           },
           {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer ${sharedPreferences?.getString('token')}'
+            'Authorization': 'Bearer ${LocalStorage.getString('token')}'
           }
         ).then((http.Response res){
           if(res.statusCode == 200){
@@ -333,12 +333,12 @@ class _WorkFieldState extends State<WorkField>{
     requestDelete(
         '/api/cos/delete_draft',
         {
-          'userId':sharedPreferences?.getString('userId'),
+          'userId':LocalStorage.getString('userId'),
           'postId': postId
         },
         {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${sharedPreferences?.getString('token')}'
+          'Authorization': 'Bearer ${LocalStorage.getString('token')}'
         }
     ).then((http.Response res){
         if(res.statusCode == 200){
@@ -361,13 +361,13 @@ class _WorkFieldState extends State<WorkField>{
         '/api/cos/upload_draft',
         {
           'title': title,
-          'userId': sharedPreferences?.getString('userId'),
+          'userId': LocalStorage.getString('userId'),
           'content': content,
           'postId': postId
         },
         {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${sharedPreferences?.getString('token')}'
+          'Authorization': 'Bearer ${LocalStorage.getString('token')}'
         }
     ).then((http.Response res){
         if(res.statusCode == 200){

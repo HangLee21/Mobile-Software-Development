@@ -239,15 +239,9 @@ class SettingsState extends State<Settings>{
                 ),
             ),
             const SizedBox(height: 20,),
-            FractionallySizedBox(
-              widthFactor: 0.9,
-              child: TextButton(
-                onPressed: (){
+            ElevatedButton(onPressed: (){
 
-                },
-                child: Text('修改密码')
-              )
-            ),
+            }, child: Text('修改密码')),
             const SizedBox(height: 20,),
             ElevatedButton(onPressed: (){
               sharedPreferences?.remove('token');

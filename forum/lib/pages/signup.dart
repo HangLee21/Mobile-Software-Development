@@ -37,7 +37,6 @@ class _SignupState extends State<Signup>{
 
   @override
   Widget build(BuildContext context) {
-
     return SizedBox(
       width: 250,
       child: Center(
@@ -122,20 +121,20 @@ class _SignupState extends State<Signup>{
             ElevatedButton(
               onPressed: (username == '' ||  userId == '' || password1 == '' || password2 == '' || email == '')?null:(){
                 //TODO 注册
-                requestPost(
-                    '/api/user/register',
-                    {
-                      'userName': username,
-                      'userId': userId,
-                      'userPassword': password1,
-                      'userEmail': email,
-                      'userAvatar': 'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png'
-                    }, {}).then((http.Response res){
-                      if(res.statusCode == 200){
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginLayout()));
-                      }
-                });
-
+                // requestPost(
+                //     '/api/user/register',
+                //     {
+                //       'userName': username,
+                //       'userId': userId,
+                //       'userPassword': password1,
+                //       'userEmail': email,
+                //       'userAvatar': 'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png'
+                //     }, {}).then((http.Response res){
+                //       if(res.statusCode == 200){
+                //         Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginLayout()));
+                //       }
+                // });
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => PinputPage(username, userId, password1, password2, email: email, type: 'signup')));
               },
               style: ButtonStyle(
                   minimumSize: MaterialStateProperty.all(Size(250, 50))

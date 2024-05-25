@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:forum/classes/localStorage.dart';
+
 import '../constants.dart';
 import 'package:http/http.dart' as http;
 import 'dart:developer' as developer;
@@ -28,9 +30,23 @@ import 'dart:developer' as developer;
 //   }
 // }
 
-Future<http.Response> requestGet(pathname,headers,{query}) async{
+Future<http.Response> requestGet(pathname,Map<String, String> headers,{query}) async{
   query ??= {};
   String url = 'http://'+BASEURL+pathname;
+  if( headers['Authorization'] != null){
+    var checkToken = await http.get(Uri.parse('http://$BASEURL/api/user/check_token_valid?${LocalStorage.getString('token')}'), headers:{});
+    if (checkToken.statusCode == 200){
+      String decodedString = utf8.decode(checkToken.bodyBytes);
+      Map body = jsonDecode(decodedString);
+      if(!body['result']){
+        LocalStorage.setString('token', body['token']);
+        headers['Authorization'] = 'Bearer ${body['token']}';
+      }
+    }
+  }
+
+
+
   if(query != {}){
     url += '?';
     query.forEach((key,value){
@@ -45,6 +61,17 @@ Future<http.Response> requestGet(pathname,headers,{query}) async{
 Future<http.Response> requestPost( pathname,Map body, Map<String, String> headers,{query}) async{
   query ??= {};
   String url = 'http://'+BASEURL+pathname;
+  if( headers['Authorization'] != null){
+    var checkToken = await http.get(Uri.parse('http://$BASEURL/api/user/check_token_valid?${LocalStorage.getString('token')}'), headers:{});
+    if (checkToken.statusCode == 200){
+      String decodedString = utf8.decode(checkToken.bodyBytes);
+      Map body = jsonDecode(decodedString);
+      if(!body['result']){
+        LocalStorage.setString('token', body['token']);
+        headers['Authorization'] = 'Bearer ${body['token']}';
+      }
+    }
+  }
   if(query != {}){
     url += '?';
     query.forEach((key,value){
@@ -58,6 +85,17 @@ Future<http.Response> requestPost( pathname,Map body, Map<String, String> header
 Future<http.Response> requestDelete( pathname,Map body, Map<String, String> headers,{query}) async{
   query ??= {};
   String url = 'http://'+BASEURL+pathname;
+  if( headers['Authorization'] != null){
+    var checkToken = await http.get(Uri.parse('http://$BASEURL/api/user/check_token_valid?${LocalStorage.getString('token')}'), headers:{});
+    if (checkToken.statusCode == 200){
+      String decodedString = utf8.decode(checkToken.bodyBytes);
+      Map body = jsonDecode(decodedString);
+      if(!body['result']){
+        LocalStorage.setString('token', body['token']);
+        headers['Authorization'] = 'Bearer ${body['token']}';
+      }
+    }
+  }
   if(query != {}){
     url += '?';
     query.forEach((key,value){

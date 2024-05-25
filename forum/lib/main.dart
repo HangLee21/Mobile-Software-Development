@@ -33,6 +33,7 @@ class _ForumAppState extends State<ForumApp> {
     await LocalStorage.init();
     print('name:${LocalStorage.getString('userName')}');
     if (LocalStorage.getString('token') != '' && LocalStorage.getString('token') != null){
+
       logined = true;
     }else{
       logined = false;
