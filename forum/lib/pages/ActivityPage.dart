@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:forum/components/content_card.dart';
 import 'package:forum/constants.dart';
@@ -28,13 +29,14 @@ class ActivityPage extends StatefulWidget {
   _ActivityPageState createState() => _ActivityPageState();
 }
 
-class _ActivityPageState extends State<ActivityPage> with AutomaticKeepAliveClientMixin {
+class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderStateMixin {
   List<CarouselCard> cards = [
   ];
 
   List<ContentCard> content_cards = [
   ];
-
+  late AnimationController _animationController;
+  double _dragOffset = 0.0;
   List<String> userIds = [];
 
   int pageIndex = 0;
@@ -46,6 +48,19 @@ class _ActivityPageState extends State<ActivityPage> with AutomaticKeepAliveClie
   @override
   void initState(){
     super.initState();
+    getSubscriptions();
+    content_cards.clear();
+    getActivityWorks();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: Duration(milliseconds: 300),
+    );
+  }
+
+  Future<void> _refresh() async {
+    // 模拟网络请求或其他耗时操作
+    users.clear();
+    users.add(User('AI助手', 'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar.png', 'ai_assistant'));
     getSubscriptions();
     content_cards.clear();
     getActivityWorks();
@@ -124,9 +139,22 @@ class _ActivityPageState extends State<ActivityPage> with AutomaticKeepAliveClie
     super.dispose();
   }
 
+  void _handleScrollNotification(ScrollNotification notification) {
+    if (notification is OverscrollNotification) {
+      setState(() {
+        _dragOffset += notification.overscroll / 2;
+        _animationController.value = _dragOffset / 100.0;
+      });
+    } else if (notification is ScrollEndNotification) {
+      setState(() {
+        _dragOffset = 0.0;
+        _animationController.value = 0.0;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    super.build(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -141,68 +169,71 @@ class _ActivityPageState extends State<ActivityPage> with AutomaticKeepAliveClie
           ),
         )
       ),
-      body: Center(
-        child: SizedBox(
-            height: double.infinity,
-            child: Column(
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    child:
-                    Column(
-                      children: [
-                        Container(
-                          height: 120,
-                          child: ListView.builder(
-                            scrollDirection: Axis.horizontal,
-                            itemCount: users.length,
-                            itemBuilder: (context, index) {
-                              final user = users[index];
-                              return GestureDetector(
-                                onTap: () {
-                                  if(user.userId == 'ai_assistant'){
-                                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => AIChatPage(userId: 'ai_assistant',)));
-                                  }
-                                  else{
-                                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(user.userId)));
-                                  }
-                                },
-                                child: Container(
-                                  width: 70,
-                                  margin: EdgeInsets.symmetric(horizontal: 8.0),
-                                  child: Column(
-                                    children: [
-                                      CircleAvatar(
-                                        backgroundImage: NetworkImage(user.avatarUrl),
-                                        radius: 30,
-                                      ),
-                                      SizedBox(height: 8.0),
-                                      Text(user.name),
-                                    ],
+      body: EasyRefresh(
+        onRefresh: _refresh,
+        child: Center(
+          child: SizedBox(
+              height: double.infinity,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child:
+                      Column(
+                        children: [
+                          Container(
+                            height: 120,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount: users.length,
+                              itemBuilder: (context, index) {
+                                final user = users[index];
+                                return GestureDetector(
+                                  onTap: () {
+                                    if(user.userId == 'ai_assistant'){
+                                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => AIChatPage(userId: 'ai_assistant',)));
+                                    }
+                                    else{
+                                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(user.userId)));
+                                    }
+                                  },
+                                  child: Container(
+                                    width: 70,
+                                    margin: EdgeInsets.symmetric(horizontal: 8.0),
+                                    child: Column(
+                                      children: [
+                                        CircleAvatar(
+                                          backgroundImage: NetworkImage(user.avatarUrl),
+                                          radius: 30,
+                                        ),
+                                        SizedBox(height: 8.0),
+                                        Text(user.name),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        if (content_cards.isEmpty)
-                          const Padding(
-                            padding: EdgeInsets.all(20.0),
-                            child: Text(
-                              'No posts found for subscriptions',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 20,
-                              ),
+                                );
+                              },
                             ),
                           ),
-                        CardList(cards: content_cards,)
-                      ],
+                          if (content_cards.isEmpty)
+                            const Padding(
+                              padding: EdgeInsets.all(20.0),
+                              child: Text(
+                                'No posts found for subscriptions',
+                                style: TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 20,
+                                ),
+                              ),
+                            ),
+                          CardList(cards: content_cards,)
+                        ],
+                      ),
                     ),
                   ),
-                ),
-              ],
-            )
+                ],
+              )
+          ),
         ),
       ),
     );
