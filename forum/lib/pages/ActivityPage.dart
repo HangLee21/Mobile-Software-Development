@@ -239,7 +239,4 @@ class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderSt
     );
   }
 
-  @override
-  // TODO: implement wantKeepAlive
-  bool get wantKeepAlive => true;
 }

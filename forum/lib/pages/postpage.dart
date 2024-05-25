@@ -50,7 +50,7 @@ class _PostState extends State<PostPage>{
     myFocusNode.addListener(() {
       if(myFocusNode.hasFocus){
         setState(() {
-          writing = true;
+          writing = false;
         });
       }else{
         setState(() {
@@ -588,12 +588,13 @@ class _PostState extends State<PostPage>{
                   ),
 
                   AnimatedContainer(
-                      width: writing ? 0 : 35,
+                      width: writing ? 0 : 45,
                       // height: writing ? 0 : 50,
                       duration: Duration(milliseconds: 300),
                       child: AnimatedSwitcher(
                           duration: Duration(milliseconds: 200),
                           child: LikeButton(
+                              likeCount: likes > 0 ? likes : 0,
                               isLiked: liked,
                               circleColor:
                               CircleColor(start: Color(0xff00ddff), end: Color(0xff0099cc)),
@@ -622,24 +623,27 @@ class _PostState extends State<PostPage>{
                           //   icon: Icon(liked?Icons.favorite:Icons.favorite_border),key: ValueKey<bool>(liked),),
                         )
                   ),
+                  // AnimatedContainer(
+                  //   duration: Duration(milliseconds: 300),
+                  //   width: writing ? 0 : 20,
+                  //   child: Text(
+                  //       likes > 0? likes > 99 ? '99+' : likes.toString(): '',
+                  //       style: TextStyle(
+                  //         fontSize: writing?0:15,
+                  //         color: Colors.grey
+                  //       ),
+                  //   )
+                  // ),
                   AnimatedContainer(
-                    duration: Duration(milliseconds: 300),
-                    width: writing ? 0 : 20,
-                    child: Text(
-                        likes > 0? likes > 99 ? '99+' : likes.toString(): '',
-                        style: TextStyle(
-                          fontSize: writing?0:15,
-                          color: Colors.grey
-                        ),
-                    )
-                  ),
-                  AnimatedContainer(
-                      width: writing ? 0 : 35,
+                      margin: const EdgeInsets.fromLTRB(0,0,15,0),
+                      width: writing ? 0 : 45,
                       // height: writing ? 0 : 50,
                       duration: Duration(milliseconds: 150),
                       child: AnimatedSwitcher(
-                          duration: Duration(milliseconds: 200),
+                        duration: Duration(milliseconds: 200),
                         child: LikeButton(
+                            key: ValueKey<bool>(stared),
+                            likeCount: stars > 0 ? stars : 0,
                             isLiked: stared,
                             circleColor:
                             CircleColor(start: Color(0xff00ddff), end: Color(0xff0099cc)),
@@ -668,17 +672,17 @@ class _PostState extends State<PostPage>{
                           //   icon: Icon(stared?Icons.star:Icons.star_border),key: ValueKey<bool>(stared),),
                         )
                   ),
-                  AnimatedContainer(
-                      duration: Duration(milliseconds: 300),
-                      width: writing ? 0 : 20,
-                      child: Text(
-                        stars > 0? stars > 99 ? '99+' : stars.toString(): '',
-                        style: TextStyle(
-                            fontSize: writing?0:15,
-                            color: Colors.grey
-                        ),
-                      )
-                  ),
+                  // AnimatedContainer(
+                  //     duration: Duration(milliseconds: 300),
+                  //     width: writing ? 0 : 20,
+                  //     child: Text(
+                  //       stars > 0? stars > 99 ? '99+' : stars.toString(): '',
+                  //       style: TextStyle(
+                  //           fontSize: writing?0:15,
+                  //           color: Colors.grey
+                  //       ),
+                  //     )
+                  // ),
                 ],
               ),
             ),

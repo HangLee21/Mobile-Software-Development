@@ -59,7 +59,7 @@ class _AIChatPageState extends State<AIChatPage>{
         "anotherId": widget.userId
       }).then((response) {
         setState(() {
-          //print(response.statusCode);
+          print(response.statusCode);
           if (response.statusCode == 200) {
             String decodedString = utf8.decode(response.bodyBytes);
             Map body = jsonDecode(decodedString) as Map;
@@ -406,7 +406,7 @@ class _AIChatPageState extends State<AIChatPage>{
     textEditingController.clear();
     text = '';
     var client = http.Client();
-    var url = Uri.parse('http://$BASEURL/api/ai/chat?userId=test23456&content=${content}');
+    var url = Uri.parse('http://$BASEURL/api/ai/chat?userId=${widget.selfId}&content=${content}');
     var requestBody = jsonEncode({
       'userId': LocalStorage.getString('userId')??'',
       'content': 'hello'
