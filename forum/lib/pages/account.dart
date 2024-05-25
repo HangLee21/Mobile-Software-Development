@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:forum/components/accountpagecard.dart';
+import 'package:forum/pages/personspace.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../classes/localStorage.dart';
 
@@ -43,9 +44,15 @@ class _AccountState extends State<AccountPage>{
                 child: Row(
                   children: [
                     const SizedBox(width: 20,),
-                    CircleAvatar(
-                      foregroundImage: NetworkImage(LocalStorage.getString('userAvatar')??'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png'),
-                      radius: 50,
+                    GestureDetector(
+                      onTap: () {
+                        // 处理用户头像点击事件
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(LocalStorage.getString('userId') ?? '')));
+                      },
+                      child:CircleAvatar(
+                          foregroundImage: NetworkImage(LocalStorage.getString('userAvatar')??'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png'),
+                          radius: 50,
+                        ),
                     ),
                     const SizedBox(width: 20,),
                     Column(

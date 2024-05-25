@@ -22,11 +22,43 @@ class WebSocketService extends ChangeNotifier{
   StreamController<String> _messageController = StreamController.broadcast();
   Stream<dynamic>? get stream => _messageController.stream;
 
+  Timer? _reconnectTimer; // 定时器
+  bool _isConnected = false; // WebSocket 连接状态
+  int _reconnectDelay = 5; // 重连延迟时间（秒）
+  String userId = '';
+
+  void _onError(dynamic error) {
+    print('WebSocket error: $error');
+    _isConnected = false; // 连接出现错误，标记为未连接状态
+    _startReconnectTimer(); // 启动定时器，准备重新连接
+  }
+
+  void _onDone() {
+    print('WebSocket connection closed');
+    _isConnected = false; // WebSocket 连接关闭，标记为未连接状态
+    _startReconnectTimer(); // 启动定时器，准备重新连接
+  }
+
+  void _startReconnectTimer() {
+    if (_reconnectTimer == null || !_reconnectTimer!.isActive) {
+      _reconnectTimer = Timer(Duration(seconds: _reconnectDelay), _reconnect);
+    }
+  }
+
+  void _reconnect() {
+    if (!_isConnected) {
+      connect(userId); // 尝试重新连接
+    }
+  }
+
   void connect(String userId) {
+    this.userId = userId;
     String url = "$WEBSOCKET_URL/$userId";
     _channel = IOWebSocketChannel.connect(url);
-    _channel?.stream.listen(_onMessageReceived);
+    _channel?.stream.listen(_onMessageReceived, onError: _onError, onDone: _onDone);
+    _isConnected = true; // 连接建立成功
   }
+
 
   void _onMessageReceived(dynamic message) {
     // Add the received message to the stream
