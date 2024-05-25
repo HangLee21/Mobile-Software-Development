@@ -100,7 +100,11 @@ class SettingsState extends State<Settings>{
               widthFactor: 0.9,
               child: Row(
                 children: [
-                  Text('头像'),
+                  Text('头像',
+                    style: TextStyle(
+                      fontSize: 16
+                    ),
+                  ),
                   Expanded(
                     child: Container(
                       alignment: Alignment.bottomRight,
@@ -246,18 +250,15 @@ class SettingsState extends State<Settings>{
             ),
             const SizedBox(height: 20,),
             ElevatedButton(onPressed: (){
-              print('clear1: ${LocalStorage.getString('token')}');
               sharedPreferences?.remove('token');
               sharedPreferences?.remove('userName');
               sharedPreferences?.remove('userId');
               sharedPreferences?.remove('userAvatar');
               sharedPreferences?.remove('userEmail');
-              _websocketService.close();
-              print('clear2: ${LocalStorage.getString('token')}');
+              // _websocketService.close();
               Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => LoginLayout()), (route) => false);
             }, child: Text('退出登录'))
           ],
-
         ),
       )
     );
