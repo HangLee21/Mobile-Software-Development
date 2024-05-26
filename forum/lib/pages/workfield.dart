@@ -177,7 +177,7 @@ class _WorkFieldState extends State<WorkField>{
     showDialog(
       context: context,
       builder: (context){
-        if(materials[index].split('.')[materials[index].split('.').length - 1] == 'png' || materials[index].split('.')[materials[index].split('.').length - 1] == 'jpg'){
+        if(materials[index].split('.')[materials[index].split('.').length - 1] == 'png' || materials[index].split('.')[materials[index].split('.').length - 1] == 'jpg' || materials[index].split('.')[materials[index].split('.').length - 1] == 'jpeg'){
           return Image.network(materials[index]);
         }else{
           return BetterPlayer.network(

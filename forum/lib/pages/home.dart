@@ -37,7 +37,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     // });
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       _fetchList();
-      autoswitchpageview = AutoSwitchPageView(cards: cards==[]?[CarouselCard(postId: 'chl', title: 'title', content: 'content', card_height: 100, asset: NetworkImage('https://img-blog.csdnimg.cn/fcc22710385e4edabccf2451d5f64a99.jpeg'))]:cards);
+      autoswitchpageview = AutoSwitchPageView(cards: cards);
     });
   }
 
@@ -75,7 +75,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         String decodedString1 = utf8.decode(res.bodyBytes);
         List posts = jsonDecode(decodedString1)['posts'];
         for(var post in posts){
-          _cards.add(CarouselCard(postId: post['postId'], title: post['title'], content: post['content'], card_height: 240, asset: NetworkImage('https://android-1324918669.cos.ap-beijing.myqcloud.com/23c396f7b5f58d25/0123testtest1616/Materials/0.png')));
+          _cards.add(CarouselCard(postId: post['postId'], title: post['title'], content: post['content'], card_height: 240, asset: NetworkImage(post['urls'][0])));
         }
         EasyLoading.dismiss();
         return _cards;

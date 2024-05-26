@@ -2,8 +2,11 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'dart:typed_data';
 import 'dart:ui' as ui;
+import 'package:better_player/better_player.dart';
 import 'package:flutter/material.dart';
+import 'package:video_thumbnail/video_thumbnail.dart';
 
 class CarouselDemo extends StatelessWidget {
   CarouselDemo({
@@ -15,11 +18,86 @@ class CarouselDemo extends StatelessWidget {
   final List<String> fileNames;
   List<Widget>? images;
 
+  Future<Uint8List?> getThumbnail(String videoUrl) async {
+    final uint8list = await VideoThumbnail.thumbnailData(
+      video: videoUrl,
+      imageFormat: ImageFormat.PNG,
+      maxWidth: 80,
+      maxHeight: 80,
+      quality: 100,
+    );
+    return uint8list;
+  }
+
+
+
   @override
   Widget build(context) {
     // TODO
+    void clickImage(String file){
+      showDialog(
+          context: context,
+          builder: (context){
+            if(file.split('.')[file.split('.').length - 1] == 'png' || file.split('.')[file.split('.').length - 1] == 'jpg' || file.split('.')[file.split('.').length - 1] == 'jpeg'){
+              return Image.network(file);
+            }else{
+              return BetterPlayer.network(
+                  file,
+                  betterPlayerConfiguration: BetterPlayerConfiguration(
+                      autoPlay: true
+                  )
+              );
+            }
+          }
+      );
+    }
     images =
-        fileNames.map((file) => Image.network(file, fit: BoxFit.cover)).toList();
+        fileNames.map((file){
+          if(file.split('.')[file.split('.').length - 1] == 'jpg' || file.split('.')[file.split('.').length - 1] == 'png' || file.split('.')[file.split('.').length - 1] == 'jpeg') {
+            return GestureDetector(
+              onTap: () {
+                clickImage(file);
+              },
+                child: Image.network(file, fit: BoxFit.cover)
+            );
+          }else{
+            return GestureDetector(
+              onTap: (){
+                clickImage(file);
+              },
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  FutureBuilder<Uint8List?>(
+                    future: getThumbnail(file),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return CircularProgressIndicator(); // 正在加载
+                      } else if (snapshot.hasError) {
+                        return Text('Error: ${snapshot.error}'); // 发生错误
+                      } else if (snapshot.hasData && snapshot.data != null) {
+                        return Image.memory(
+                            snapshot.data!,
+                            // width: 80,
+                            // height: 80,
+                            fit: BoxFit.cover
+                        ); // 显示缩略图
+                      } else {
+                        return Text('No Thumbnail Available'); // 没有缩略图
+                      }
+                    },
+                  ),
+                  Icon(
+                      Icons.play_circle_outlined,
+                      size: 80,
+                      color: Colors.white,
+                  )
+                ],
+              )
+
+            );
+          }
+        }).toList();
     return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
