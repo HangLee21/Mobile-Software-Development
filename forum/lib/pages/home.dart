@@ -38,25 +38,29 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     // });
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       _fetchList();
-      autoswitchpageview = AutoSwitchPageView(cards: cards);
+
     });
   }
 
 
   void _fetchList()async{
-    getRecommendWorks().then((result){
-      setState(() {
-        // print('setState');
-        content_cards = result;
+    await Future.delayed(Duration(milliseconds: 50),(){
+      getRecommendWorks().then((result){
+        setState(() {
+          // print('setState');
+          content_cards = result;
+        });
+      });
+      getSingleChildScrollView().then((result){
+        setState(() {
+          // print('setState');
+          // print('result:${result}');
+          cards = result;
+          autoswitchpageview = AutoSwitchPageView(cards: cards);
+        });
       });
     });
-    getSingleChildScrollView().then((result){
-      setState(() {
-        // print('setState');
-        // print('result:${result}');
-        cards = result;
-      });
-    });
+
   }
   // void initSharedPreference() async{
   //   sharedPreferences = await SharedPreferences.getInstance();
