@@ -56,7 +56,6 @@ class _NotificationState extends State<NotificationPage>{
         }, query: {
           'userId': info.friendId,
         }).then((http.Response res2) {
-          print(res2.statusCode);
           if(res2.statusCode == 200){
             String decodedString = utf8.decode(res2.bodyBytes);
             Map body2 = jsonDecode(decodedString) as Map;
