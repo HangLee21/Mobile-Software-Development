@@ -8,6 +8,7 @@ import 'package:forum/classes/localStorage.dart';
 import 'package:forum/components/card_list.dart';
 import 'package:forum/components/content_card.dart';
 import 'package:forum/constants.dart';
+import 'package:forum/pages/editpassword.dart';
 import 'package:forum/pages/login.dart';
 import 'package:forum/url/user.dart';
 import 'package:http/http.dart' as http;
@@ -240,7 +241,7 @@ class SettingsState extends State<Settings>{
             ),
             const SizedBox(height: 20,),
             ElevatedButton(onPressed: (){
-
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => EditPassword()));
             }, child: Text('修改密码')),
             const SizedBox(height: 20,),
             ElevatedButton(onPressed: (){
