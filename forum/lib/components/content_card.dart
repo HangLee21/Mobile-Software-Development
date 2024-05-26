@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:forum/pages/personspace.dart';
 import 'package:forum/pages/postpage.dart';
 import 'package:forum/pages/workfield.dart';
+import 'package:http/http.dart' as http;
+import '../classes/localStorage.dart';
+import '../url/user.dart';
 import 'carousel.dart';
 import '../constants.dart';
 
@@ -165,17 +169,28 @@ class ContentCard extends StatelessWidget {
               },
             ),
           ),
-
-        PopupMenuItem(
-          child: ListTile(
-            leading: Icon(Icons.favorite),
-            title: Text('收藏'),
-            onTap: () {
-              // 处理收藏操作
-              Navigator.pop(context);
-            },
+        if(type != 'draft')
+          PopupMenuItem(
+            child: ListTile(
+              leading: Icon(Icons.favorite),
+              title: Text('收藏'),
+              onTap: () {
+                // 处理收藏操作
+                requestPost('/api/info/post/add_star', {
+                  'postId': postId,
+                  'userId': LocalStorage.getString('userId') ?? ''
+                }, {
+                  'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? '',
+                }).then((http.Response res) {
+                  //print(res.body);
+                  if (res.statusCode == 200) {
+                    EasyLoading.showSuccess('收藏成功');
+                  }
+                });
+                Navigator.pop(context);
+              },
+            ),
           ),
-        ),
       ],
     );
   }
