@@ -43,6 +43,4 @@ const double firstHeaderDesktopTopPadding = 5.0;
 final Uint8List kTransparentImage = transparent_image.kTransparentImage;
 
 const String BASEURL = '101.200.84.216:8080';
-const String WEBSOCKET_URL = 'ws://10.0.2.2:8080/websocket';
-
-const String API_KEY = 'a333b62b0b117025f9c6f349b462436a.ZbNY1lGk2Pkvf4hG';
+const String WEBSOCKET_URL = 'ws://101.200.84.216:8080/websocket';

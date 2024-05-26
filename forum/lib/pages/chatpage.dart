@@ -26,10 +26,9 @@ import 'package:video_player/video_player.dart';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:vimeo_video_player/vimeo_video_player.dart';
 import 'package:path_provider/path_provider.dart';
-// TODO add websocket listener
+
 class ChatPage extends StatefulWidget{
   final String userId;
-  // TODO change self id
   String selfId = '';
   ChatPage({super.key, required this.userId});
 
