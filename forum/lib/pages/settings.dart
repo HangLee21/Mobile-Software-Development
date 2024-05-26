@@ -249,7 +249,7 @@ class SettingsState extends State<Settings>{
               sharedPreferences?.remove('userId');
               sharedPreferences?.remove('userAvatar');
               sharedPreferences?.remove('userEmail');
-              // _websocketService.close();
+              _websocketService.close();
               Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => LoginLayout()), (route) => false);
             }, child: Text('退出登录'))
           ],

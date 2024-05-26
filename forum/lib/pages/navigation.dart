@@ -21,7 +21,7 @@ class NavigationExample extends StatefulWidget {
 
 class _NavigationExampleState extends State<NavigationExample> {
   int currentPageIndex = 0;
-  // final _websocketService = WebSocketService();
+  final _websocketService = WebSocketService();
   var _pageController = PageController();
   var _pages;
   void initData() {
@@ -44,37 +44,37 @@ class _NavigationExampleState extends State<NavigationExample> {
   @override
   void initState(){
     super.initState();
-//     _streamSubscription = _websocketService.stream!.listen((message) async {
-//       setState(() {
-//         Message message1 = Message.fromString(message);
-//         if(LocalStorage.getString('currentUserId') == null){
-// // 定义正则表达式模式
-//           RegExp regex = RegExp(r'\((.*?)\)\[(.*?)\]');
-//           //print('content: '+ item['content']);
-//           Match? match = regex.firstMatch(message1.content);
-//           String content = message1.content;
-//           // 检查是否匹配成功
-//           if (match != null) {
-//             content = '暂不支持的消息格式，请跳转页面详细观看内容';
-//           }
-//           AnimatedSnackBar(
-//             duration: Duration(seconds: 4),
-//             builder: ((context) {
-//               return NotificationCard(
-//                 friendname: message1.senderId,
-//                 content: content,
-//                 url: '',
-//                 friendId: message1.senderId,
-//                 info_num: 0,
-//                 remove: false,
-//                 onPressed: () {
-//                 },
-//               );
-//             }),
-//           ).show(context);
-//         }
-//       });
-//     });
+    _streamSubscription = _websocketService.stream!.listen((message) async {
+      setState(() {
+        Message message1 = Message.fromString(message);
+        if(LocalStorage.getString('currentUserId') == null){
+// 定义正则表达式模式
+          RegExp regex = RegExp(r'\((.*?)\)\[(.*?)\]');
+          //print('content: '+ item['content']);
+          Match? match = regex.firstMatch(message1.content);
+          String content = message1.content;
+          // 检查是否匹配成功
+          if (match != null) {
+            content = '暂不支持的消息格式，请跳转页面详细观看内容';
+          }
+          AnimatedSnackBar(
+            duration: Duration(seconds: 4),
+            builder: ((context) {
+              return NotificationCard(
+                friendname: message1.senderId,
+                content: content,
+                url: '',
+                friendId: message1.senderId,
+                info_num: 0,
+                remove: false,
+                onPressed: () {
+                },
+              );
+            }),
+          ).show(context);
+        }
+      });
+    });
 
   }
 

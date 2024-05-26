@@ -56,7 +56,7 @@ class _LoginState extends State<Login>{
 
   final FocusNode _accountNode = FocusNode();
   final FocusNode _passwordNode = FocusNode();
-  // final _websocketService = WebSocketService();
+  final _websocketService = WebSocketService();
   // SharedPreferences? sharedPreferences;
   @override
   void initState(){
@@ -147,7 +147,7 @@ class _LoginState extends State<Login>{
                       print('new:${body['token']}');
                       print('newName:${body['content']['userName']}');
                       print('logintoken:${LocalStorage.getString('token')}');
-                      // _websocketService.connect(body['content']['userId']);
+                      _websocketService.connect(body['content']['userId']);
                       Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const NavigationExample()), (route) => route == null);
                     }else{
                       throw Exception("登录失败");
