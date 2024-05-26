@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:forum/classes/localStorage.dart';
 import 'package:forum/components/card_list.dart';
+import 'package:forum/pages/chatpage.dart';
 import 'package:forum/url/user.dart';
 import 'package:http/http.dart' as http;
 
@@ -162,7 +163,10 @@ class PersonalSpaceState extends State<PersonalSpace>{
           title: title,
           actions: [
             button,
-            const SizedBox(width: 20,)
+            const SizedBox(width: 20,),
+            IconButton(onPressed: (){
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChatPage(userId: widget.userId)));
+            }, icon: Icon(Icons.message_rounded))
           ]
       ),
       body: ListView(
