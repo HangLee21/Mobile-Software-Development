@@ -181,17 +181,18 @@ class _ChatPageState extends State<ChatPage>{
                 'status': 1,
                 'show': true
               });
+              if(messages.length > 1){
+                DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
+                DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
+                Duration difference = current.difference(previous);
+                if (difference.inMinutes <= 5) {
+                  messages[0]['show'] = false;
+                }
+              }
+              _renderlist = _renderList();
             });
           });
 
-          if(messages.length > 1){
-            DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
-            DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
-            Duration difference = current.difference(previous);
-            if (difference.inMinutes <= 5) {
-              messages[0]['show'] = false;
-            }
-          }
         }
         else{
           // 定义正则表达式模式
@@ -596,7 +597,7 @@ class _ChatPageState extends State<ChatPage>{
                           children: <Widget>[
                             if (type == picType)
                               ConstrainedBox(constraints: BoxConstraints(
-                                maxWidth: 300,
+                                maxWidth: 250,
                                 maxHeight: 200,
                               ),
                                 child: Image.network(
@@ -711,7 +712,7 @@ class _ChatPageState extends State<ChatPage>{
     String content = textEditingController.text;
     setState(() {
       messages.insert(0, {
-        'name': widget.selfId,
+        'name': LocalStorage.getString('userId'),
         'content': textEditingController.text,
         'me?': true,
         'createdAt': formattedTime,
@@ -815,7 +816,7 @@ class _ChatPageState extends State<ChatPage>{
           '${_twoDigits(now.hour)}:${_twoDigits(now.minute)}:${_twoDigits(now.second)}';
       setState(() {
         messages.insert(0, {
-          'name': widget.selfId,
+          'name': LocalStorage.getString('userName'),
           'content': '正在发送中',
           'me?': true,
           'createdAt': formattedTime,
@@ -835,13 +836,16 @@ class _ChatPageState extends State<ChatPage>{
       }
 
       var response = await request.send();
+      print(response.statusCode);
       if (response.statusCode == 200) {
         var responseBody = await response.stream.bytesToString();
         LocalStorage.setString('token', json.decode(responseBody)['token']);
         var data = jsonDecode(responseBody);
         String url = data['content'][0];
         String content = "SINGLE_SENDING:${widget.selfId}:${widget.userId}:($picType)[$url]";
-        messages.removeAt(0);
+        setState(() {
+          messages.removeAt(0);
+        });
         addMessage(content, 'image');
       }
       else{
@@ -883,24 +887,25 @@ class _ChatPageState extends State<ChatPage>{
           '${_twoDigits(now.hour)}:${_twoDigits(now.minute)}:${_twoDigits(now.second)}';
       setState(() {
         messages.insert(0, {
-          'name': widget.selfId,
+          'name': LocalStorage.getString('userName'),
           'content': '正在发送中',
           'me?': true,
           'createdAt': formattedTime,
           'status': SENDING_TYPE,
           'show': true
         });
+        if(messages.length > 1){
+          DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
+          DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
+          Duration difference = current.difference(previous);
+          if (difference.inMinutes <= 5) {
+            messages[0]['show'] = false;
+          }
+        }
         _renderlist = _renderList();
       });
 
-      if(messages.length > 1){
-        DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
-        DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
-        Duration difference = current.difference(previous);
-        if (difference.inMinutes <= 5) {
-          messages[0]['show'] = false;
-        }
-      }
+
 
       if (response.statusCode == 200) {
         var responseBody = await response.stream.bytesToString();
@@ -908,7 +913,9 @@ class _ChatPageState extends State<ChatPage>{
         var data = jsonDecode(responseBody);
         String url = data['content'][0];
         String content = "SINGLE_SENDING:${widget.selfId}:${widget.userId}:($videoType)[${url}]";
-        messages.removeAt(0);
+        setState(() {
+          messages.removeAt(0);
+        });
         addMessage(content, 'video');
       }
       else{
@@ -941,6 +948,7 @@ class _ChatPageState extends State<ChatPage>{
         'status': SENDING_TYPE,
         'show': true
       });
+      _renderlist = _renderList();
     });
 
     if(messages.length > 1){
@@ -957,10 +965,12 @@ class _ChatPageState extends State<ChatPage>{
     _websocketService.sendMessage("SINGLE_SENDING:${widget.selfId}:${widget.userId}:${content}").then((value) {
       setState(() {
         messages[0]['status'] = SUCCESSED_TYPE;
+        _renderlist = _renderList();
       });
     }).catchError((e) {
       setState(() {
         messages[0]['status'] = FAILED_TYPE;
+        _renderlist = _renderList();
       });
     });
     if(tag == 'image' || tag == 'video' || tag == 'audio') {
