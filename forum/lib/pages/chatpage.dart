@@ -344,6 +344,9 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
             url);
         _betterPlayerController = BetterPlayerController(
             BetterPlayerConfiguration(
+              controlsConfiguration: const BetterPlayerControlsConfiguration(
+                showControlsOnInitialize: false,
+              ),
               fit: BoxFit.contain,
               handleLifecycle: false, // 禁用预加载
             ),
@@ -447,6 +450,7 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
                             ),
                           if (type == audioType)
                             WaveBubble(
+                              key: UniqueKey(),
                               filename: filename,
                               isSender: false,
                               width: MediaQuery.of(context).size.width / 2,
@@ -519,6 +523,9 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
             url);
         _betterPlayerController = BetterPlayerController(
             BetterPlayerConfiguration(
+              controlsConfiguration: const BetterPlayerControlsConfiguration(
+                showControlsOnInitialize: false,
+              ),
               fit: BoxFit.contain,
               handleLifecycle: false, // 禁用预加载
             ),
@@ -631,6 +638,7 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
                             if (type == audioType)
                             // TODO add audio player
                               WaveBubble(
+                                key: UniqueKey(),
                                 filename: filename,
                                 isSender: true,
                                 width: MediaQuery.of(context).size.width / 2,
@@ -717,7 +725,7 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
     DateTime now = DateTime.now().toLocal();
     // 将时间格式化为字符串，精确到秒
     // 转化时区
-    now = now.add(Duration(hours: 8));
+    // now = now.add(Duration(hours: 8));
     String formattedTime = '${now.year}-${_twoDigits(now.month)}-${_twoDigits(now.day)} '
         '${_twoDigits(now.hour)}:${_twoDigits(now.minute)}:${_twoDigits(now.second)}';
     String content = textEditingController.text;
@@ -791,7 +799,7 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
     DateTime now = DateTime.now().toLocal();
     // 将时间格式化为字符串，精确到秒
     // 转化时区
-    now = now.add(Duration(hours: 8));
+    // now = now.add(Duration(hours: 8));
     String formattedTime = '${now.year}-${_twoDigits(now.month)}-${_twoDigits(now.day)} '
         '${_twoDigits(now.hour)}:${_twoDigits(now.minute)}:${_twoDigits(now.second)}';
 
@@ -862,7 +870,7 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
       DateTime now = DateTime.now().toLocal();
       // 将时间格式化为字符串，精确到秒
       // 转化时区
-      now = now.add(Duration(hours: 8));
+      // now = now.add(Duration(hours: 8));
       String formattedTime = '${now.year}-${_twoDigits(now.month)}-${_twoDigits(now.day)} '
           '${_twoDigits(now.hour)}:${_twoDigits(now.minute)}:${_twoDigits(now.second)}';
       setState(() {
@@ -935,7 +943,7 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
       DateTime now = DateTime.now().toLocal();
       // 将时间格式化为字符串，精确到秒
       // 转化时区
-      now = now.add(Duration(hours: 8));
+      // now = now.add(Duration(hours: 8));
       String formattedTime = '${now.year}-${_twoDigits(now.month)}-${_twoDigits(now.day)} '
           '${_twoDigits(now.hour)}:${_twoDigits(now.minute)}:${_twoDigits(now.second)}';
       setState(() {
@@ -992,7 +1000,7 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
     DateTime now = DateTime.now().toLocal();
     // 将时间格式化为字符串，精确到秒
     // 转化时区
-    now = now.add(Duration(hours: 8));
+    // now = now.add(Duration(hours: 8));
     String formattedTime = '${now.year}-${_twoDigits(now.month)}-${_twoDigits(now.day)} '
         '${_twoDigits(now.hour)}:${_twoDigits(now.minute)}:${_twoDigits(now.second)}';
     setState(() {
@@ -1043,7 +1051,7 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
     DateTime now = DateTime.now().toLocal();
     // 将时间格式化为字符串，精确到秒
     // 转化时区
-    now = now.add(Duration(hours: 8));
+    // now = now.add(Duration(hours: 8));
     String formattedTime = '${now.year}-${_twoDigits(now.month)}-${_twoDigits(now.day)} '
         '${_twoDigits(now.hour)}:${_twoDigits(now.minute)}:${_twoDigits(now.second)}';
     setState(() {
