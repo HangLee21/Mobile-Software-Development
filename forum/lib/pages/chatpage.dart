@@ -49,7 +49,8 @@ class _ChatPageState extends State<ChatPage>{
   late VideoPlayerController _controller;
   late final RecorderController recorderController;
   late FlickManager flickManager;
-
+  var _renderlist;
+  late String friendname = '';
   String? path;
   String? musicFile;
   bool isRecording = false;
@@ -58,6 +59,9 @@ class _ChatPageState extends State<ChatPage>{
   late Directory appDirectory;
   final _player = AudioPlayer();
   StreamSubscription<dynamic>? _streamSubscription;
+
+  String friendAvatar = '';
+  String friendName = '';
 
 
   void _initLocalStorage()async{
@@ -69,12 +73,31 @@ class _ChatPageState extends State<ChatPage>{
     super.initState();
     textEditingController = TextEditingController();
     _getDir();
+    initFriendInfo();
     _initLocalStorage();
     // get chat history
-    initData();
     // listen to websocket
+    initData();
     initWebSocket();
     _initialiseControllers();
+  }
+
+  void initFriendInfo() {
+    requestGet('/api/user/get_user', {
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+    }, query: {
+      'userId': widget.userId,
+    }).then((http.Response res2) {
+      print(res2.statusCode);
+      if(res2.statusCode == 200){
+        String decodedString = utf8.decode(res2.bodyBytes);
+        Map body2 = jsonDecode(decodedString) as Map;
+        setState(() {
+          friendAvatar = body2['content']['userAvatar'];
+          friendName = body2['content']['userName'];
+        });
+      }
+    });
   }
   void _getDir() async {
     appDirectory = await getApplicationDocumentsDirectory();
@@ -217,8 +240,6 @@ class _ChatPageState extends State<ChatPage>{
       "userId": widget.selfId,
       "anotherId": widget.userId
     }).then((response) {
-      setState(() {
-        //print(response.statusCode);
         if (response.statusCode == 200) {
           String decodedString = utf8.decode(response.bodyBytes);
           Map body = jsonDecode(decodedString) as Map;
@@ -230,25 +251,19 @@ class _ChatPageState extends State<ChatPage>{
 
             // 格式化时间
             String formattedTime = '$datePart $timePart';
-            requestGet('/api/user/get_user', {
-              'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
-            },query: {
-              'userId': item.senderId,
-            }).then((http.Response res2) {
-              String decodedString = utf8.decode(res2.bodyBytes);
-              Map body2 = jsonDecode(decodedString) as Map;
+            setState(() {
               messages.insert(0, {
-                'name': body2['content']['userName'],
+                'name': item['senderId'] == widget.userId ? friendName : LocalStorage.getString('userName'),
                 'content': item['content'],
                 'createdAt': formattedTime,
                 'me?': item['senderId'] == widget.selfId,
                 'status': 1,
                 'show': true
               });
+              _renderlist = _renderList();
             });
           }
         }
-      });
     });
   }
 
@@ -258,6 +273,7 @@ class _ChatPageState extends State<ChatPage>{
   }
 
   _renderList() {
+    print(messages);
     return GestureDetector(
       child: ListView.builder(
         reverse: true,
@@ -363,20 +379,10 @@ class _ChatPageState extends State<ChatPage>{
                   alignment: Alignment.center,
                   width: 30,
                   height: 30,
-                  decoration: BoxDecoration(
-                      color: Color(0xFF464EB5),
-                      borderRadius: BorderRadius.all(Radius.circular(15))),
-                  child: Padding(
-                    child: Text(
-                      item['name'].toString().substring(0, 1),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),
-                    ),
-                    padding: EdgeInsets.only(bottom: 2),
-                  ),
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(friendAvatar),
+                    radius: 20,
+                  )
                 ),
                 Expanded(
                   child: Column(
@@ -539,20 +545,10 @@ class _ChatPageState extends State<ChatPage>{
                 alignment: Alignment.center,
                 width: 30,
                 height: 30,
-                decoration: const BoxDecoration(
-                    color: Color(0xFF464EB5),
-                    borderRadius: BorderRadius.all(Radius.circular(15))),
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: 2),
-                  child: Text(
-                    item['name'].toString().substring(0, 1),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
+                child: CircleAvatar(
+                  backgroundImage: NetworkImage(LocalStorage.getString('userAvatar') ?? 'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png'),
+                  radius: 20,
+                )
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -1006,7 +1002,7 @@ class _ChatPageState extends State<ChatPage>{
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(widget.userId),
+        title: Text(friendName),
       ),
       body: Container(
         width: double.infinity,
@@ -1019,7 +1015,7 @@ class _ChatPageState extends State<ChatPage>{
               child: Container(
                 //列表内容少的时候靠上
                 alignment: Alignment.topCenter,
-                child: _renderList(),
+                child: _renderlist,
               ),
             ),
             Container(
@@ -1072,9 +1068,8 @@ class _ChatPageState extends State<ChatPage>{
                         padding: const EdgeInsets.only(left: 18),
                         margin: EdgeInsets.fromLTRB(5, 10, 0, 10),
                       ) : Container(
-
                         width:
-                        MediaQuery.of(context).size.width / 2.1,
+                        MediaQuery.of(context).size.width / 2.2,
                         height: 50,
                         decoration: BoxDecoration(
                           color: Color(0xFFF5F6FF),
@@ -1159,7 +1154,6 @@ class _ChatPageState extends State<ChatPage>{
                               color: Color(0xFF838CFF),
                               iconSize: 30, // 调整图标大小
                               onPressed: () {
-                                // TODO: 添加按钮点击后的操作
                                 addVideo();
                               },
                             ),
