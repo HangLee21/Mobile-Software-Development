@@ -7,6 +7,7 @@ import 'package:flutter/widgets.dart';
 import 'package:forum/classes/localStorage.dart';
 import 'package:forum/components/carousel.dart';
 import 'package:forum/components/commentcard.dart';
+import 'package:forum/pages/personspace.dart';
 import 'package:forum/url/user.dart';
 import 'package:like_button/like_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -36,6 +37,7 @@ class _PostState extends State<PostPage>{
   late bool liked = false;
   late bool stared = false;
   late bool subscribed = false;
+  late String userId = '';
   late TextEditingController textEditingController;
   FocusNode myFocusNode = FocusNode();
   bool writing = false;
@@ -462,8 +464,13 @@ class _PostState extends State<PostPage>{
                               children: [
                                 Row(
                                   children: [
-                                    CircleAvatar(
-                                      backgroundImage: NetworkImage(avatar),
+                                    GestureDetector(
+                                      child: CircleAvatar(
+                                        backgroundImage: NetworkImage(avatar),
+                                      ),
+                                      onTap: (){
+                                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(authorId)));
+                                      },
                                     ),
                                     const SizedBox(width: 20),
                                     Text(username,style: const TextStyle(

@@ -29,7 +29,6 @@ import 'package:path_provider/path_provider.dart';
 // TODO add websocket listener
 class ChatPage extends StatefulWidget{
   final String userId;
-  // TODO change self id
   String selfId = '';
   ChatPage({super.key, required this.userId});
 
