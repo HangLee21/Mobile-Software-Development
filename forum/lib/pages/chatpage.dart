@@ -37,7 +37,7 @@ class ChatPage extends StatefulWidget{
   _ChatPageState createState() => _ChatPageState();
 }
 
-class _ChatPageState extends State<ChatPage>{
+class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin {
 
   //{'name': 'chl','content': 'content','me?': true,'createdAt': '2024-03-07 15:56','status': 1},
   List<Map> messages = [];
@@ -89,7 +89,7 @@ class _ChatPageState extends State<ChatPage>{
     }, query: {
       'userId': widget.userId,
     }).then((http.Response res2) {
-      print(res2.statusCode);
+      //print(res2.statusCode);
       if(res2.statusCode == 200){
         String decodedString = utf8.decode(res2.bodyBytes);
         Map body2 = jsonDecode(decodedString) as Map;
@@ -110,7 +110,7 @@ class _ChatPageState extends State<ChatPage>{
   void _startOrStopRecording() async {
     try {
       if (isRecording) {
-        print('end record');
+        //print('end record');
         recorderController.reset();
         path = await recorderController.stop(false);
         if (path != null) {
@@ -120,8 +120,8 @@ class _ChatPageState extends State<ChatPage>{
           addAudio(path!);
         }
       } else {
-        print('start record');
-        await recorderController.record(path: path); // Path is optional
+        //print('start record');
+        await recorderController.record(); // Path is optional
       }
     } catch (e) {
       debugPrint(e.toString());
@@ -277,7 +277,7 @@ class _ChatPageState extends State<ChatPage>{
   }
 
   _renderList() {
-    print(messages);
+    //print(messages);
     return GestureDetector(
       child: ListView.builder(
         reverse: true,
@@ -353,7 +353,11 @@ class _ChatPageState extends State<ChatPage>{
         filename = url.split('/').last;
         filepath = '${appDirectory.path}/$filename';
         if(!checkFileExists(filepath)){
-          downloadFile(url, filepath);
+           downloadFile(url, filepath).then((value) => {
+             setState(() {
+               _renderlist = _renderList();
+             })
+           });
         }
       }
     }
@@ -524,7 +528,12 @@ class _ChatPageState extends State<ChatPage>{
         filename = url.split('/').last;
         filepath = '${appDirectory.path}/$filename';
         if(!checkFileExists(filepath)){
-          downloadFile(url, filepath);
+          downloadFile(url, filepath).then((value) => {
+            setState(() {
+              print('下载完成');
+              _renderlist = _renderList();
+            })
+          });
         }
       }
     }
@@ -779,6 +788,33 @@ class _ChatPageState extends State<ChatPage>{
       'userId': LocalStorage.getString('userId') ?? '',
     });
 
+    DateTime now = DateTime.now().toLocal();
+    // 将时间格式化为字符串，精确到秒
+    // 转化时区
+    now = now.add(Duration(hours: 8));
+    String formattedTime = '${now.year}-${_twoDigits(now.month)}-${_twoDigits(now.day)} '
+        '${_twoDigits(now.hour)}:${_twoDigits(now.minute)}:${_twoDigits(now.second)}';
+
+    setState(() {
+      messages.insert(0, {
+        'name': LocalStorage.getString('userName'),
+        'content': '正在发送中',
+        'me?': true,
+        'createdAt': formattedTime,
+        'status': SENDING_TYPE,
+        'show': true
+      });
+      if(messages.length > 1){
+        DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
+        DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
+        Duration difference = current.difference(previous);
+        if (difference.inMinutes <= 5) {
+          messages[0]['show'] = false;
+        }
+      }
+      _renderlist = _renderList();
+    });
+
     var response = await request.send();
     if (response.statusCode == 200) {
       var responseBody = await response.stream.bytesToString();
@@ -786,6 +822,9 @@ class _ChatPageState extends State<ChatPage>{
       var data = jsonDecode(responseBody);
       String url = data['content'][0];
       String content = "SINGLE_SENDING:${widget.selfId}:${widget.userId}:($audioType)[$url]";
+      setState(() {
+        messages.removeAt(0);
+      });
       addMessage(content, 'audio');
     }
     else{
@@ -835,17 +874,16 @@ class _ChatPageState extends State<ChatPage>{
           'status': SENDING_TYPE,
           'show': true
         });
+        if(messages.length > 1){
+          DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
+          DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
+          Duration difference = current.difference(previous);
+          if (difference.inMinutes <= 5) {
+            messages[0]['show'] = false;
+          }
+        }
         _renderlist = _renderList();
       });
-
-      if(messages.length > 1){
-        DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
-        DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
-        Duration difference = current.difference(previous);
-        if (difference.inMinutes <= 5) {
-          messages[0]['show'] = false;
-        }
-      }
 
       var response = await request.send();
       print(response.statusCode);
@@ -959,7 +997,7 @@ class _ChatPageState extends State<ChatPage>{
         '${_twoDigits(now.hour)}:${_twoDigits(now.minute)}:${_twoDigits(now.second)}';
     setState(() {
       messages.insert(0, {
-        'name': widget.selfId,
+        'name': LocalStorage.getString('userName'),
         'content': content,
         'me?': true,
         'createdAt': formattedTime,
@@ -1045,6 +1083,7 @@ class _ChatPageState extends State<ChatPage>{
 
   @override
   Widget build(BuildContext context){
+    super.build(context);
     contentMaxWidth = MediaQuery.of(context).size.width - 90;
     return Scaffold(
       backgroundColor: Colors.white,
@@ -1100,7 +1139,7 @@ class _ChatPageState extends State<ChatPage>{
                       AudioWaveforms(
                         enableGesture: true,
                         size: Size(
-                            MediaQuery.of(context).size.width / 1.5,
+                            MediaQuery.of(context).size.width / 1.6,
                             50),
                         recorderController: recorderController,
                         waveStyle: const WaveStyle(
@@ -1253,6 +1292,10 @@ class _ChatPageState extends State<ChatPage>{
       ),
     );
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 }
 
 

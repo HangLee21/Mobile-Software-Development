@@ -106,13 +106,15 @@ Future<http.Response> requestDelete( pathname,Map body, Map<String, String> head
   return res;
 }
 
-void downloadFile(String url, String savePath) {
+Future<void> downloadFile(String url, String savePath) async {
   try {
     // 发起 HTTP GET 请求获取文件内容
-    http.get(Uri.parse(url)).then((value) => {
-      // 将文件内容写入到文件中
-      File(savePath).writeAsBytes(value.bodyBytes)
-    });
+    final response = await http.get(Uri.parse(url));
+
+    // 将文件内容写入到文件中
+    final file = File(savePath);
+    await file.writeAsBytes(response.bodyBytes);
+
   } catch (e) {
     // 捕获异常，打印错误信息
     print('Error downloading file: $e');

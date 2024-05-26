@@ -31,7 +31,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-    minSdkVersion 21
+
     kotlinOptions {
         jvmTarget = '1.8'
     }
@@ -67,5 +67,7 @@ flutter {
 }
 
 dependencies {
+
     implementation 'com.android.support:multidex:1.0.3'
 }
+
