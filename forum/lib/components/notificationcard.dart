@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:forum/classes/notification_card.dart';
 import 'package:forum/pages/chatpage.dart';
 import 'package:forum/storage/notificationInfo_storage.dart';
-
+import 'package:http/http.dart' as http;
 
 // TODO change content according to the chat page
 class NotificationCard extends StatelessWidget{
@@ -53,7 +53,7 @@ class NotificationCard extends StatelessWidget{
               const SizedBox(width: 10,),
               CircleAvatar(
                 radius: 30,
-                // backgroundImage: NetworkImage(url),
+                backgroundImage: NetworkImage(url),
               ),
               const SizedBox(width: 20,),
               Expanded(
