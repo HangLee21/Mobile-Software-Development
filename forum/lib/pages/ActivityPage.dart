@@ -29,7 +29,7 @@ class ActivityPage extends StatefulWidget {
   _ActivityPageState createState() => _ActivityPageState();
 }
 
-class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderStateMixin {
+class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin{
   List<CarouselCard> cards = [
   ];
 
@@ -158,6 +158,7 @@ class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
@@ -241,5 +242,9 @@ class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderSt
       ),
     );
   }
+
+  @override
+  // TODO: implement wantKeepAlive
+  bool get wantKeepAlive => true;
 
 }
