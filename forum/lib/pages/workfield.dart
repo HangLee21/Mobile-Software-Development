@@ -16,12 +16,11 @@ import 'package:better_player/better_player.dart';
 import 'package:video_thumbnail/video_thumbnail.dart';
 
 import '../constants.dart';
+import 'AIChatPage.dart';
 
 class WorkField extends StatefulWidget{
-  final String title;
-  final String content;
-  final List materials;
-  WorkField(this.title, this.content, this.materials,{super.key});
+  final String postId;
+  WorkField(this.postId,{super.key});
 
   @override
   _WorkFieldState createState() => _WorkFieldState();
@@ -30,17 +29,24 @@ class WorkField extends StatefulWidget{
 class _WorkFieldState extends State<WorkField>{
   String title = '';
   String content = '';
-  int materialCount = 5;
+  int materialCount = 0;
   String postId = '';
   List materials = [];
+  List<Widget> materialbox = [];
   @override
   void initState(){
     super.initState();
-    title = widget.title;
-    content = widget.content;
-    materials = widget.materials;
+    postId = widget.postId;
     materialCount = materials.length + 1;
-    _initPostId();
+    if(postId == '') {
+      _initPostId();
+    }else{
+      _initDraft();
+    }
+    materialbox = List.generate(
+      materialCount,
+          (index) => _buildMaterialBox(index),
+    );
   }
 
   void _initPostId() async{
@@ -60,6 +66,33 @@ class _WorkFieldState extends State<WorkField>{
       });
     }
   }
+
+  void _initDraft()async{
+    requestGet('/api/cos/post/query_draft',{
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}',
+    },query: {
+      'postId': widget.postId
+    }).then((http.Response res){
+      print(res.statusCode);
+      if(res.statusCode == 200){
+        String decodedString1 = utf8.decode(res.bodyBytes);
+        print('posts:${json.decode(decodedString1)['posts']}');
+        Map post = json.decode(decodedString1)['posts'][0];
+        setState(() {
+          title = post['title'];
+          content = post['content'];
+          materials = post['urls'];
+          print(materials);
+          materialCount = materials.length + 1;
+          materialbox = List.generate(
+            materialCount,
+                (index) => _buildMaterialBox(index),
+          );
+        });
+      }
+    });
+  }
+
   void _addMaterial() async{
     FilePickerResult? result = await FilePicker.platform.pickFiles(type: FileType.media);
     EasyLoading.show(status: '上传中...');
@@ -94,6 +127,10 @@ class _WorkFieldState extends State<WorkField>{
         setState(() {
           materials = [...materials, url];
           materialCount = materials.length + 1;
+          materialbox = List.generate(
+            materialCount,
+                (index) => _buildMaterialBox(index),
+          );
         });
       }
     }
@@ -126,6 +163,10 @@ class _WorkFieldState extends State<WorkField>{
         setState(() {
           materials.removeAt(index);
           materialCount = materials.length + 1;
+          materialbox = List.generate(
+            materialCount,
+                (index) => _buildMaterialBox(index),
+          );
         });
       }
     });
@@ -139,7 +180,12 @@ class _WorkFieldState extends State<WorkField>{
         if(materials[index].split('.')[materials[index].split('.').length - 1] == 'png' || materials[index].split('.')[materials[index].split('.').length - 1] == 'jpg'){
           return Image.network(materials[index]);
         }else{
-          return BetterPlayer.network(materials[index]);
+          return BetterPlayer.network(
+              materials[index],
+              betterPlayerConfiguration: BetterPlayerConfiguration(
+                autoPlay: true
+              )
+          );
         }
       }
     );
@@ -224,7 +270,24 @@ class _WorkFieldState extends State<WorkField>{
                   ),
                 ),
               ),
-            )
+            ),
+            if (materials[index].split('.')[materials[index].split('.').length - 1] != 'png' && materials[index].split('.')[materials[index].split('.').length - 1] != 'jpg')
+              Positioned(
+                top: 15,
+                right: 15,
+                child:  GestureDetector(
+                  onTap: (){
+                    showMaterial(index);
+                  },
+                  child: Icon(
+                  Icons.play_circle_outline_outlined,
+                    color: Colors.white,
+                    size: 50,
+                  ),
+                )
+
+
+              ),
           ]
         );
     }else{
@@ -273,12 +336,12 @@ class _WorkFieldState extends State<WorkField>{
     EasyLoading.show(status: '正在发布...');
     if(title != '' && content != ''){
       requestPost(
-          '/api/cos/upload_work',
+          '/api/cos/post',
           {
             'title': title,
             'userId': LocalStorage.getString('userId'),
             'content': content,
-            'postId': postId
+            'draftId': postId
           },
           {
             'Content-Type': 'application/json',
@@ -288,9 +351,9 @@ class _WorkFieldState extends State<WorkField>{
           if(res.statusCode == 200){
             Navigator.of(context).pop();
             EasyLoading.showSuccess('发布成功');
+            String _postId = json.decode(res.body)['content'];
             Future.delayed(Duration(seconds: 1),(){
-
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => PostPage(postId)));
+              Navigator.of(context).push(MaterialPageRoute(builder: (context) => PostPage(_postId)));
             });
           }else{
             Navigator.of(context).pop();
@@ -415,10 +478,7 @@ class _WorkFieldState extends State<WorkField>{
                 spacing: 8.0, // 水平方向子组件之间的间距
                 runSpacing: 8.0, // 垂直方向子组件之间的间距
                 alignment: WrapAlignment.start,
-                children: List.generate(
-                  materialCount,
-                  (index) => _buildMaterialBox(index),
-                ),
+                children: materialbox
               ),
           ),
 
@@ -471,9 +531,38 @@ class _WorkFieldState extends State<WorkField>{
                 fontSize:15
             ),
           ),)
+
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        child: const Icon(Icons.question_answer_outlined),
+        ///点击响应事
+        onPressed: () {
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => AIChatPage(userId: 'ai_assistant',)));
+        },
+        ///长按提示
+        tooltip: "AI助手",
+        ///设置悬浮按钮的背景
+        heroTag: 'other',
+      ),
+      floatingActionButtonLocation: CustomFloatingActionButtonLocation(),
     );
   }
+}
 
+class CustomFloatingActionButtonLocation extends FloatingActionButtonLocation {
+  @override
+  Offset getOffset(ScaffoldPrelayoutGeometry scaffoldGeometry) {
+    // 计算屏幕宽度和高度
+    double scaffoldWidth = scaffoldGeometry.scaffoldSize.width;
+    double scaffoldHeight = scaffoldGeometry.scaffoldSize.height;
+
+    // 计算按钮的水平位置（右侧）
+    double fabX = scaffoldWidth - scaffoldGeometry.minInsets.right - kFloatingActionButtonMargin - scaffoldGeometry.floatingActionButtonSize.width ;
+
+    // 计算按钮的垂直位置（屏幕中间）
+    double fabY = scaffoldHeight / 2 - scaffoldGeometry.floatingActionButtonSize.height / 2;
+
+    return Offset(fabX, fabY);
+  }
 }

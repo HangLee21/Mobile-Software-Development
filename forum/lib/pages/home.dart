@@ -162,7 +162,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         child: Icon(Icons.add),
         ///点击响应事
         onPressed: () {
-          Navigator.of(context).push(MaterialPageRoute(builder: (context) => WorkField('','',const [])));
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => WorkField('')));
         },
         ///长按提示
         tooltip: "创作",

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:forum/pages/personspace.dart';
 import 'package:forum/pages/postpage.dart';
+import 'package:forum/pages/workfield.dart';
 import 'carousel.dart';
 import '../constants.dart';
 
@@ -55,7 +56,12 @@ class ContentCard extends StatelessWidget {
                   // Navigator.of(context)
                   //     .popUntil((route) => route.settings.name == '/');
                   // Navigator.of(context).restorablePushNamed(url!);
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PostPage(postId!)));
+                  if(type == 'draft'){
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => WorkField(postId!)));
+                  }else {
+                    Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => PostPage(postId!)));
+                  }
                 }
               },
 
