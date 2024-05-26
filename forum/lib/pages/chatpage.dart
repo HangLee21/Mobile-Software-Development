@@ -181,18 +181,18 @@ class _ChatPageState extends State<ChatPage>{
                 'status': 1,
                 'show': true
               });
+              if(messages.length > 1){
+                DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
+                DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
+                Duration difference = current.difference(previous);
+                if (difference.inMinutes <= 5) {
+                  messages[0]['show'] = false;
+                }
+              }
               _renderlist = _renderList();
             });
           });
 
-          if(messages.length > 1){
-            DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
-            DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
-            Duration difference = current.difference(previous);
-            if (difference.inMinutes <= 5) {
-              messages[0]['show'] = false;
-            }
-          }
         }
         else{
           // 定义正则表达式模式
