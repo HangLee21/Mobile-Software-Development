@@ -261,72 +261,80 @@ class _PostState extends State<PostPage>{
   }
 
   void addLike() {
-    requestPost('/api/info/post/add_like', {
-      'postId': widget.postId,
-      'userId': LocalStorage.getString('userId') ?? ''
-    }, {
-      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
-    }
-    ).then((http.Response res) {
-      //print(res.body);
-      if (res.statusCode == 200) {
-        setState(() {
-          liked = true;
-          likes += 1;
-        });
+    if(!liked){
+      requestPost('/api/info/post/add_like', {
+        'postId': widget.postId,
+        'userId': LocalStorage.getString('userId') ?? ''
+      }, {
+        'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
       }
-    });
+      ).then((http.Response res) {
+        //print(res.body);
+        if (res.statusCode == 200) {
+          setState(() {
+            liked = true;
+            likes += 1;
+          });
+        }
+      });
+    }
   }
 
   void cancelLike() {
-    requestDelete('/api/info/post/cancel_like', {
-      'postId': widget.postId,
-      'userId': LocalStorage.getString('userId') ?? ''
-    }, {
-      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
-    }).then((http.Response res) {
-      //print(res.body);
-      if (res.statusCode == 200) {
-        setState(() {
-          liked = false;
-          likes -= 1;
-        });
-      }
-    });
+    if(liked){
+      requestDelete('/api/info/post/cancel_like', {
+        'postId': widget.postId,
+        'userId': LocalStorage.getString('userId') ?? ''
+      }, {
+        'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+      }).then((http.Response res) {
+        //print(res.body);
+        if (res.statusCode == 200) {
+          setState(() {
+            liked = false;
+            likes -= 1;
+          });
+        }
+      });
+    }
   }
 
   void addStar() {
-    requestPost('/api/info/post/add_star', {
-      'postId': widget.postId,
-      'userId': LocalStorage.getString('userId') ?? ''
-    }, {
-      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? '',
-    }).then((http.Response res) {
-      //print(res.body);
-      if (res.statusCode == 200) {
-        setState(() {
-          stared = true;
-          stars += 1;
-        });
-      }
-    });
+    if(!stared){
+      requestPost('/api/info/post/add_star', {
+        'postId': widget.postId,
+        'userId': LocalStorage.getString('userId') ?? ''
+      }, {
+        'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? '',
+      }).then((http.Response res) {
+        //print(res.body);
+        if (res.statusCode == 200) {
+          setState(() {
+            stared = true;
+            stars += 1;
+          });
+        }
+      });
+    }
   }
 
   void cancelStar() {
-    requestDelete('/api/info/post/cancel_star', {
-      'postId': widget.postId,
-      'userId': LocalStorage.getString('userId') ?? ''
-    }, {
-      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? '',
-    }).then((http.Response res) {
-      //print(res.body);
-      if (res.statusCode == 200) {
-        setState(() {
-          stared = false;
-          stars -= 1;
-        });
-      }
-    });
+    if(stared){
+      requestDelete('/api/info/post/cancel_star', {
+        'postId': widget.postId,
+        'userId': LocalStorage.getString('userId') ?? ''
+      }, {
+        'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? '',
+      }).then((http.Response res) {
+        //print(res.body);
+        if (res.statusCode == 200) {
+          setState(() {
+            stared = false;
+            stars -= 1;
+          });
+        }
+      });
+    }
   }
 
 
