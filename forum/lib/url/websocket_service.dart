@@ -73,7 +73,7 @@ class WebSocketService extends ChangeNotifier{
       String decodedString = utf8.decode(res.bodyBytes);
       Map body = jsonDecode(decodedString) as Map;
       notificationStorage.saveNotification(NotificationInfo(
-          friendId: body['content']['userName'],
+          friendId: body['content']['userId'],
           content: message1.content,
           info_num: 1,
           time: message1.time

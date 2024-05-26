@@ -9,6 +9,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flick_video_player/flick_video_player.dart';
 import 'package:flutter/material.dart';
 import 'package:forum/classes/localStorage.dart';
+import 'package:forum/pages/personspace.dart';
 import 'package:forum/url/user.dart';
 import 'package:http/http.dart';
 import 'package:just_audio/just_audio.dart';
@@ -379,9 +380,14 @@ class _ChatPageState extends State<ChatPage>{
                   alignment: Alignment.center,
                   width: 30,
                   height: 30,
-                  child: CircleAvatar(
-                    backgroundImage: NetworkImage(friendAvatar),
-                    radius: 20,
+                  child: GestureDetector(
+                    onTap: (){
+                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(widget.userId)));
+                    },
+                    child: CircleAvatar(
+                      backgroundImage: NetworkImage(friendAvatar),
+                      radius: 20,
+                    ),
                   )
                 ),
                 Expanded(
@@ -545,9 +551,14 @@ class _ChatPageState extends State<ChatPage>{
                 alignment: Alignment.center,
                 width: 30,
                 height: 30,
-                child: CircleAvatar(
-                  backgroundImage: NetworkImage(LocalStorage.getString('userAvatar') ?? 'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png'),
-                  radius: 20,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(LocalStorage.getString('userId') ?? '')));
+                  },
+                    child:CircleAvatar(
+                      backgroundImage: NetworkImage(LocalStorage.getString('userAvatar') ?? 'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png'),
+                      radius: 20,
+                    )
                 )
               ),
               Column(
@@ -707,6 +718,7 @@ class _ChatPageState extends State<ChatPage>{
         'status': SENDING_TYPE,
         'show': true
       });
+      _renderlist = _renderList();
     });
 
     if(messages.length > 1){
@@ -723,10 +735,12 @@ class _ChatPageState extends State<ChatPage>{
     _websocketService.sendMessage("SINGLE_SENDING:${widget.selfId}:${widget.userId}:${content}").then((value) {
       setState(() {
         messages[0]['status'] = SUCCESSED_TYPE;
+        _renderlist = _renderList();
       });
     }).catchError((e) {
       setState(() {
         messages[0]['status'] = FAILED_TYPE;
+        _renderlist = _renderList();
       });
     });
 
@@ -808,6 +822,7 @@ class _ChatPageState extends State<ChatPage>{
           'status': SENDING_TYPE,
           'show': true
         });
+        _renderlist = _renderList();
       });
 
       if(messages.length > 1){
@@ -875,6 +890,7 @@ class _ChatPageState extends State<ChatPage>{
           'status': SENDING_TYPE,
           'show': true
         });
+        _renderlist = _renderList();
       });
 
       if(messages.length > 1){
