@@ -1,14 +1,17 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:forum/classes/notification_card.dart';
 import 'package:forum/storage/notificationInfo_storage.dart';
+import 'package:forum/url/user.dart';
 import 'package:pinput/pinput.dart';
 import 'package:provider/provider.dart';
+import '../classes/localStorage.dart';
 import '../classes/message.dart';
 import '../components/notificationcard.dart';
 import '../url/websocket_service.dart';
-
+import 'package:http/http.dart' as http;
 
 class NotificationPage extends StatefulWidget{
   @override
@@ -48,14 +51,27 @@ class _NotificationState extends State<NotificationPage>{
     NotificationStorage().loadNotifications().then((value) => setState(() {
       _notificationInfos = value;
       for(var info in _notificationInfos.values){
-        cards[info.friendId] = NotificationCard(
-          friendname: info.friendId,
-          content: info.content,
-          url: "",
-          friendId: info.friendId,
-          info_num: info.info_num,
-          onPressed: _initNotifications,
-        );
+        requestGet('/api/user/get_user', {
+          'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+        }, query: {
+          'userId': info.friendId,
+        }).then((http.Response res2) {
+          print(res2.statusCode);
+          if(res2.statusCode == 200){
+            String decodedString = utf8.decode(res2.bodyBytes);
+            Map body2 = jsonDecode(decodedString) as Map;
+            setState(() {
+              cards[info.friendId] = NotificationCard(
+                friendname: body2['content']['userName'],
+                content: info.content,
+                url: body2['content']['userAvatar'],
+                friendId: info.friendId,
+                info_num: info.info_num,
+                onPressed: _initNotifications,
+              );
+            });
+          }
+        });
       }
     }));
   }
