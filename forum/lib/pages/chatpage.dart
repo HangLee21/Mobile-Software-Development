@@ -344,6 +344,9 @@ class _ChatPageState extends State<ChatPage>{
             url);
         _betterPlayerController = BetterPlayerController(
             BetterPlayerConfiguration(
+              controlsConfiguration: const BetterPlayerControlsConfiguration(
+                showControlsOnInitialize: false,
+              ),
               fit: BoxFit.contain,
               handleLifecycle: false, // 禁用预加载
             ),
@@ -515,6 +518,9 @@ class _ChatPageState extends State<ChatPage>{
             url);
         _betterPlayerController = BetterPlayerController(
             BetterPlayerConfiguration(
+              controlsConfiguration: const BetterPlayerControlsConfiguration(
+                showControlsOnInitialize: false,
+              ),
               fit: BoxFit.contain,
               handleLifecycle: false, // 禁用预加载
             ),
