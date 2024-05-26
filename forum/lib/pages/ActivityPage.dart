@@ -57,6 +57,12 @@ class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderSt
     );
   }
 
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
   Future<void> _refresh() async {
     // 模拟网络请求或其他耗时操作
     users.clear();
@@ -134,10 +140,7 @@ class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderSt
     });
   }
 
-  @override
-  void dispose() {
-    super.dispose();
-  }
+
 
   void _handleScrollNotification(ScrollNotification notification) {
     if (notification is OverscrollNotification) {

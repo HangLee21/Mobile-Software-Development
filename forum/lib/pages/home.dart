@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:forum/components/content_card.dart';
@@ -50,7 +51,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       });
     });
     getSingleChildScrollView().then((result){
-
       setState(() {
         // print('setState');
         // print('result:${result}');
@@ -127,6 +127,13 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     return _content_cards;
   }
 
+  void _refresh() async {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      _fetchList();
+      autoswitchpageview = AutoSwitchPageView(cards: cards==[]?[CarouselCard(postId: 'chl', title: 'title', content: 'content', card_height: 100, asset: NetworkImage('https://img-blog.csdnimg.cn/fcc22710385e4edabccf2451d5f64a99.jpeg'))]:cards);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -140,19 +147,22 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
               children: [
                 const SearchBarApp(),
                 Expanded(
-                  child: SingleChildScrollView(
-                    child:
-                    Column(
-                      children: [
-                        SizedBox(
-                            height: 300.0,
-                            child: autoswitchpageview
-                        ),
-                        CardList(cards: content_cards,)
-                      ],
+                  child: EasyRefresh(
+                    onRefresh: _refresh,
+                    child: SingleChildScrollView(
+                      child:
+                      Column(
+                        children: [
+                          SizedBox(
+                              height: 300.0,
+                              child: autoswitchpageview
+                          ),
+                          CardList(cards: content_cards,)
+                        ],
+                      ),
                     ),
                   ),
-                ),
+                )
               ],
             )
         ),

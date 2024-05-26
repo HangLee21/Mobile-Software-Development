@@ -57,6 +57,7 @@ dependencies:
   open_filex: ^4.4.0
   like_button: ^2.0.5
   easy_refresh: ^3.4.0
+  flutter_launcher_icons: ^0.13.1
 
 dev_dependencies:
   flutter_test:
@@ -72,6 +73,12 @@ dev_dependencies:
   animations: ^2.0.2
   flutter_gallery_assets: ^1.0.2
   transparent_image: ^2.0.1
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png"
+  min_sdk_android: 21 # android min sdk min:16, default 21
 
 flutter:
 
