@@ -110,6 +110,7 @@ class _ChatPageState extends State<ChatPage>{
   void _startOrStopRecording() async {
     try {
       if (isRecording) {
+        print('end record');
         recorderController.reset();
         path = await recorderController.stop(false);
         if (path != null) {
@@ -119,6 +120,7 @@ class _ChatPageState extends State<ChatPage>{
           addAudio(path!);
         }
       } else {
+        print('start record');
         await recorderController.record(path: path); // Path is optional
       }
     } catch (e) {
@@ -419,7 +421,7 @@ class _ChatPageState extends State<ChatPage>{
                           // ),
                           if (type == picType)
                             ConstrainedBox(constraints: BoxConstraints(
-                              maxWidth: 300,
+                              maxWidth: MediaQuery.of(context).size.width/1.5,
                               maxHeight: 200,
                             ),
                               child: Image.network(
@@ -429,7 +431,7 @@ class _ChatPageState extends State<ChatPage>{
                           if (type == videoType)
                             ConstrainedBox(
                               constraints: BoxConstraints(
-                                maxWidth: 300,
+                                maxWidth: MediaQuery.of(context).size.width/1.5,
                                 maxHeight: 200,
                               ),
                               child: Container(
@@ -597,7 +599,7 @@ class _ChatPageState extends State<ChatPage>{
                           children: <Widget>[
                             if (type == picType)
                               ConstrainedBox(constraints: BoxConstraints(
-                                maxWidth: 250,
+                                maxWidth: MediaQuery.of(context).size.width/1.5,
                                 maxHeight: 200,
                               ),
                                 child: Image.network(
@@ -607,7 +609,7 @@ class _ChatPageState extends State<ChatPage>{
                             if (type == videoType)
                               ConstrainedBox(
                                 constraints: BoxConstraints(
-                                  maxWidth: 300,
+                                  maxWidth: MediaQuery.of(context).size.width/1.5,
                                   maxHeight: 200,
                                 ),
                                 child: Container(
@@ -786,6 +788,16 @@ class _ChatPageState extends State<ChatPage>{
       String content = "SINGLE_SENDING:${widget.selfId}:${widget.userId}:($audioType)[$url]";
       addMessage(content, 'audio');
     }
+    else{
+      var responseBody = await response.stream.bytesToString();
+      var data = jsonDecode(responseBody);
+      String content = "SINGLE_SENDING:${widget.selfId}:${widget.userId}:${data}]";
+      setState(() {
+        messages.removeAt(0);
+      });
+      addErrorMessage(content);
+      print(response.statusCode);
+    }
   }
 
   void addPicture() async {
@@ -852,6 +864,9 @@ class _ChatPageState extends State<ChatPage>{
         var responseBody = await response.stream.bytesToString();
         var data = jsonDecode(responseBody);
         String content = "SINGLE_SENDING:${widget.selfId}:${widget.userId}:${data}]";
+        setState(() {
+          messages.removeAt(0);
+        });
         addErrorMessage(content);
         print(response.statusCode);
       }
@@ -922,6 +937,9 @@ class _ChatPageState extends State<ChatPage>{
         var responseBody = await response.stream.bytesToString();
         var data = jsonDecode(responseBody);
         String content = "SINGLE_SENDING:${widget.selfId}:${widget.userId}:${data}]";
+        setState(() {
+          messages.removeAt(0);
+        });
         addErrorMessage(content);
         print(response.statusCode);
       }
@@ -948,17 +966,18 @@ class _ChatPageState extends State<ChatPage>{
         'status': SENDING_TYPE,
         'show': true
       });
+      if(messages.length > 1){
+        DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
+        DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
+        Duration difference = current.difference(previous);
+        if (difference.inMinutes <= 5) {
+          messages[0]['show'] = false;
+        }
+      }
       _renderlist = _renderList();
     });
 
-    if(messages.length > 1){
-      DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
-      DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
-      Duration difference = current.difference(previous);
-      if (difference.inMinutes <= 5) {
-        messages[0]['show'] = false;
-      }
-    }
+
     Timer(Duration(milliseconds: 100),
             () => _scrollController.jumpTo(0));
     textEditingController.clear();
@@ -998,16 +1017,18 @@ class _ChatPageState extends State<ChatPage>{
         'status': FAILED_TYPE,
         'show': true
       });
+      if(messages.length > 1){
+        DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
+        DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
+        Duration difference = current.difference(previous);
+        if (difference.inMinutes <= 5) {
+          messages[0]['show'] = false;
+        }
+      }
+      _renderlist = _renderList();
     });
 
-    if(messages.length > 1){
-      DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
-      DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
-      Duration difference = current.difference(previous);
-      if (difference.inMinutes <= 5) {
-        messages[0]['show'] = false;
-      }
-    }
+
     Timer(Duration(milliseconds: 100),
             () => _scrollController.jumpTo(0));
     textEditingController.clear();
