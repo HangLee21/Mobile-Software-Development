@@ -101,13 +101,13 @@ class CarouselDemo extends StatelessWidget {
     return Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 10),
-          child: Carousel(itemBuilder: widgetBuilder),
+          child: Carousel(itemBuilder: widgetBuilder, itemCount: images!.length,),
         ),
       );
   }
 
   Widget widgetBuilder(BuildContext context, int index) {
-    return images![index % images!.length];
+    return images![index];
   }
 }
 
@@ -115,10 +115,12 @@ typedef OnCurrentItemChangedCallback = void Function(int currentItem);
 
 class Carousel extends StatefulWidget {
   final IndexedWidgetBuilder itemBuilder;
+  final int itemCount;
 
   const Carousel({
     super.key,
-    required this.itemBuilder
+    required this.itemBuilder,
+    required this.itemCount
   });
 
   @override
@@ -157,6 +159,7 @@ class _CarouselState extends State<Carousel> {
           ui.PointerDeviceKind.mouse,
         },
       ),
+      itemCount: widget.itemCount,
       itemBuilder: (context, index) => AnimatedBuilder(
         animation: _controller,
         builder: (context, child) {

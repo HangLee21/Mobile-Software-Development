@@ -145,7 +145,7 @@ class _NavigationExampleState extends State<NavigationExample> {
       body: SafeArea(
         child: PageView.builder(
           //要点1
-            physics: NeverScrollableScrollPhysics(),
+            physics:AlwaysScrollableScrollPhysics(),
             //禁止页面左右滑动切换
             controller: _pageController,
             onPageChanged: _pageChanged,

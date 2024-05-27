@@ -162,11 +162,14 @@ class PersonalSpaceState extends State<PersonalSpace>{
       appBar: AppBar(
           title: title,
           actions: [
-            button,
-            const SizedBox(width: 20,),
-            IconButton(onPressed: (){
-              Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChatPage(userId: widget.userId)));
-            }, icon: Icon(Icons.message_rounded))
+            if(widget.userId != LocalStorage.getString('userId'))
+              button,
+            if(widget.userId != LocalStorage.getString('userId'))
+              const SizedBox(width: 20,),
+            if(widget.userId != LocalStorage.getString('userId'))
+              IconButton(onPressed: (){
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChatPage(userId: widget.userId)));
+              }, icon: Icon(Icons.message_rounded))
           ]
       ),
       body: ListView(
