@@ -32,10 +32,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   @override
   void initState(){
     super.initState();
-    // initSharedPreference();
-    // Future.delayed(Duration(milliseconds: 10),(){
-    //   getRecommendWorks();
-    // });
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       _fetchList();
 
@@ -56,7 +52,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
           // print('setState');
           // print('result:${result}');
           cards = result;
-          autoswitchpageview = AutoSwitchPageView(cards: cards);
+          autoswitchpageview = AutoSwitchPageView(key: UniqueKey(),cards: cards);
         });
       });
     });
@@ -67,7 +63,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   // }
 
   Future<List<CarouselCard>> getSingleChildScrollView()async{
-    List<CarouselCard> _cards = cards;
+    List<CarouselCard> _cards = [];
     EasyLoading.show(status: '加载中');
     await requestGet('/api/cos/community/recommend_works_with_urls',
         {

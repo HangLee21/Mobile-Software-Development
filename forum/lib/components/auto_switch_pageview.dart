@@ -44,11 +44,13 @@ class _AutoSwitchPageViewState extends State<AutoSwitchPageView> {
     super.initState();
     _pageController = PageController();
     _timer = Timer.periodic(interval, (timer) {
-      _pageController.animateToPage(
-        (_currentPage + 1) % 3,
-        duration: transitionDuration,
-        curve: Curves.easeInOut,
-      );
+      if( cards.length > 1) {
+        _pageController.animateToPage(
+          (_currentPage + 1) % cards.length,
+          duration: transitionDuration,
+          curve: Curves.easeInOut,
+        );
+      }
     });
     print('inner cards${cards}');
   }
