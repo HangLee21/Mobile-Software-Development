@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer' as developer;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:forum/pages/signup.dart';
 import 'package:http/http.dart' as http;
 import '../theme/theme_data.dart';
@@ -150,7 +151,7 @@ class _LoginState extends State<Login>{
                       _websocketService.connect(body['content']['userId']);
                       Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => const NavigationExample()), (route) => route == null);
                     }else{
-                      throw Exception("登录失败");
+                      EasyLoading.showError('用户名或密码有误');
                     }
                   });
                   // LocalStorage.setString('token', 'token');

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:forum/pages/login.dart';
 import 'package:forum/pages/pinputpage.dart';
 import 'package:forum/url/user.dart';
@@ -119,22 +120,14 @@ class _SignupState extends State<Signup>{
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: (username == '' ||  userId == '' || password1 == '' || password2 == '' || email == '')?null:(){
-                //TODO 注册
-                // requestPost(
-                //     '/api/user/register',
-                //     {
-                //       'userName': username,
-                //       'userId': userId,
-                //       'userPassword': password1,
-                //       'userEmail': email,
-                //       'userAvatar': 'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png'
-                //     }, {}).then((http.Response res){
-                //       if(res.statusCode == 200){
-                //         Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginLayout()));
-                //       }
-                // });
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => PinputPage(username, userId, password1, password2, email: email, type: 'signup')));
+              onPressed: (){
+                if(username == '' ||  userId == '' || password1 == '' || password2 == '' || email == ''){
+                  EasyLoading.showError('请补全信息');
+                }else if(password1 != password2){
+                  EasyLoading.showError('请输入两次相同的密码');
+                }else{
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => PinputPage(username, userId, password1, password2, email: email, type: 'signup')));
+                }
               },
               style: ButtonStyle(
                   minimumSize: MaterialStateProperty.all(Size(250, 50))
