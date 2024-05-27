@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:forum/pages/login.dart';
 import 'package:forum/pages/pinputpage.dart';
 import 'package:forum/pages/postpage.dart';
@@ -99,7 +100,11 @@ class EditPasswordState extends State<EditPassword>{
                     ElevatedButton(
                       onPressed: (){
                         if(password1 == '' || password2 == '' || oldpassword == ''){
-                          //TODO
+                          EasyLoading.showError('请补全信息');
+                        }else if(password1 != password2){
+                          EasyLoading.showError('请填写两次相同的新密码');
+                        }else if(oldpassword == password1){
+                          EasyLoading.showError('新密码不能和旧密码相同');
                         }else{
                           Navigator.of(context).push(MaterialPageRoute(builder: (context) => PinputPage(LocalStorage.getString('userName')!, LocalStorage.getString('userId')!,oldpassword,password1,email: LocalStorage.getString('userEmail')??'', type: 'changepassword')));
                         }

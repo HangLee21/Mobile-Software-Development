@@ -83,6 +83,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         }
         EasyLoading.dismiss();
         return _cards;
+      }else{
+        EasyLoading.showError('获取顶部贴失败');
       }
       EasyLoading.dismiss();
       return _cards;
@@ -119,11 +121,15 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
               _content_cards.add(card);
               EasyLoading.dismiss();
               return _content_cards;
+            }else{
+              EasyLoading.showError('获取推荐贴失败');
             }
             EasyLoading.dismiss();
             return _content_cards;
           });
         }
+      }else{
+        EasyLoading.showError('获取推荐贴失败');
       }
 
     });

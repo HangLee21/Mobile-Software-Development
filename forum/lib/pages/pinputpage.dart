@@ -78,8 +78,6 @@ class _PinputExampleState extends State<PinputExample> {
       'email': widget.email,
       'code': pin,
     }).then((http.Response res) {
-      print('bingo:$bingo');
-      print('code:${res.statusCode}');
       if (res.statusCode == 200) {
         print('type:${widget.type}');
         if(widget.type == 'signup') {
@@ -91,13 +89,14 @@ class _PinputExampleState extends State<PinputExample> {
             'userName': widget.username
           },{}).then((http.Response res2){
             if(res2.statusCode == 200){
-              print('enter');
               setState(() {
                 bingo = true;
               });
               EasyLoading.showSuccess('注册成功');
               Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(builder: (context) => LoginLayout()),(route) => false);
+            }else{
+              EasyLoading.showError('注册失败');
             }
           });
         }else if(widget.type == 'changepassword'){
@@ -184,7 +183,7 @@ class _PinputExampleState extends State<PinputExample> {
               validator: (value) {
                 valid()async{
                   await Future.delayed(Duration(milliseconds: 10));
-                  return bingo?null:'Pin is incorrect';
+                  return bingo?null:'验证码错误';
                 }
                 valid().then((str){
                   return str;
