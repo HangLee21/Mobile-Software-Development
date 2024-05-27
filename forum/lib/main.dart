@@ -19,7 +19,7 @@ class ForumApp extends StatefulWidget{
 
 class _ForumAppState extends State<ForumApp> {
 
-  bool logined = true;
+  bool logined = false;
 
   @override
   void initState(){
@@ -38,6 +38,7 @@ class _ForumAppState extends State<ForumApp> {
     }else{
       logined = false;
     }
+
   }
 
   @override

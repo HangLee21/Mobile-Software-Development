@@ -104,7 +104,7 @@ class WebSocketService extends ChangeNotifier{
       _channel!.sink.add(message);
     }
     else{
-      _reconnect();
+      // _reconnect();
       throw "Connection is not established";
     }
   }
