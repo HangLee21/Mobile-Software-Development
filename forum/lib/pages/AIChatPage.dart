@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:flutter/material.dart';
+import 'package:forum/pages/personspace.dart';
 
 import 'package:http/http.dart' as http;
 import '../classes/localStorage.dart';
@@ -22,7 +24,7 @@ class _AIChatPageState extends State<AIChatPage>{
   List<Map> messages = [
 
   ];
-
+  late int currentIndex = 0;
   late StreamController<String> _streamController;
   late String text = '';
   // String employeeNo;
@@ -56,7 +58,9 @@ class _AIChatPageState extends State<AIChatPage>{
         'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
       },query:  {
         "userId": widget.selfId,
-        "anotherId": widget.userId
+        "anotherId": widget.userId,
+        'pageSize': 10,
+        'pageIndex': currentIndex,
       }).then((response) {
         setState(() {
           print(response.statusCode);
@@ -64,6 +68,13 @@ class _AIChatPageState extends State<AIChatPage>{
             String decodedString = utf8.decode(response.bodyBytes);
             Map body = jsonDecode(decodedString) as Map;
 
+            Map tmp = {
+              'name': LocalStorage.getString('userName') ?? '',
+              'content': '',
+              'createdAt': '',
+              'me?': true,
+              'status': 1,
+            };
             for(var item in body['messages']){
               // 截取日期和时间部分
               String datePart = item['time'].substring(0, 10);
@@ -71,23 +82,25 @@ class _AIChatPageState extends State<AIChatPage>{
 
               // 格式化时间
               String formattedTime = '$datePart $timePart';
+
               if(item['senderId'] == widget.userId){
-                messages.insert(0, {
+                messages.add({
                   'name': 'AI助手',
                   'content': item['content'],
                   'createdAt': formattedTime,
                   'me?': false,
                   'status': 1,
                 });
+                messages.add(tmp);
               }
               else{
-                messages.insert(0, {
+                tmp = {
                   'name': LocalStorage.getString('userName') ?? '',
                   'content': item['content'],
                   'createdAt': formattedTime,
                   'me?': true,
                   'status': 1,
-                });
+                };
               }
             }
           }
@@ -149,16 +162,14 @@ class _AIChatPageState extends State<AIChatPage>{
                   decoration: BoxDecoration(
                       color: Color(0xFF464EB5),
                       borderRadius: BorderRadius.all(Radius.circular(15))),
-                  child: Padding(
-                    child: Text(
-                      item['name'].toString().substring(0, 1),
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                      ),
+                  child: GestureDetector(
+                    onTap: (){
+
+                    },
+                    child: CircleAvatar(
+                      backgroundImage: NetworkImage('https://android-1324918669.cos.ap-beijing.myqcloud.com/AI_avatar.png'),
+                      radius: 20,
                     ),
-                    padding: EdgeInsets.only(bottom: 2),
                   ),
                 ),
                 Expanded(
@@ -200,7 +211,7 @@ class _AIChatPageState extends State<AIChatPage>{
                                 BorderRadius.all(Radius.circular(10))),
                             margin: EdgeInsets.only(top: 8, left: 10),
                             padding: EdgeInsets.all(10),
-                            child: Text(
+                            child: SelectableText(
                               item['content'],
                               style: TextStyle(
                                 color: Color(0xFF03073C),
@@ -249,17 +260,15 @@ class _AIChatPageState extends State<AIChatPage>{
                 decoration: const BoxDecoration(
                     color: Color(0xFF464EB5),
                     borderRadius: BorderRadius.all(Radius.circular(15))),
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: 2),
-                  child: Text(
-                    item['name'].toString().substring(0, 1),
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
+                child: GestureDetector(
+                  onTap: (){
+                    Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(LocalStorage.getString('userId') ?? '')));
+                  },
+                  child: CircleAvatar(
+                    backgroundImage: NetworkImage(LocalStorage.getString('userAvatar') ?? ''),
+                    radius: 20,
                   ),
-                ),
+                )
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -304,9 +313,8 @@ class _AIChatPageState extends State<AIChatPage>{
                                   borderRadius:
                                   BorderRadius.all(Radius.circular(10))),
                               padding: EdgeInsets.all(10),
-                              child: Text(
+                              child: SelectableText(
                                 item['content'],
-                                softWrap: true,
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 15,
@@ -475,6 +483,45 @@ class _AIChatPageState extends State<AIChatPage>{
     });
   }
 
+  Future<void> expandMessages() async {
+    await Future.delayed(Duration(milliseconds: 100),(){
+      requestGet("/api/chat/get_all_messages", {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+      },query:  {
+        "userId": widget.selfId,
+        "anotherId": widget.userId,
+        'pageIndex':currentIndex + 1,
+        'pageSize': 10,
+      }).then((response) {
+        if (response.statusCode == 200) {
+          String decodedString = utf8.decode(response.bodyBytes);
+          Map body = jsonDecode(decodedString) as Map;
+
+          for(var item in body['messages']){
+            // 截取日期和时间部分
+            String datePart = item['time'].substring(0, 10);
+            String timePart = item['time'].substring(11, 19);
+
+            // 格式化时间
+            String formattedTime = '$datePart $timePart';
+            setState(() {
+              messages.add({
+                'name': item['senderId'] == widget.userId ? 'AI助手' : LocalStorage.getString('userName'),
+                'content': item['content'],
+                'createdAt': formattedTime,
+                'me?': item['senderId'] == widget.selfId,
+                'status': 1,
+                'show': true
+              });
+            });
+          }
+          currentIndex += 1;
+        }
+      });
+    });
+  }
+
 
   static int SENDING_TYPE = 0;
   static int FAILED_TYPE = 1;
@@ -496,10 +543,21 @@ class _AIChatPageState extends State<AIChatPage>{
           children: <Widget>[
             Expanded(
               flex: 1,
-              child: Container(
-                //列表内容少的时候靠上
-                alignment: Alignment.topCenter,
-                child: _renderList(),
+              child: CustomMaterialIndicator(
+                trigger: IndicatorTrigger.trailingEdge,
+                onRefresh: expandMessages,
+                indicatorBuilder: (BuildContext context, IndicatorController controller) {
+                  return Icon(
+                    Icons.refresh,
+                    color: Colors.blue,
+                    size: 30,
+                  );
+                },
+                child: Container(
+                  //列表内容少的时候靠上
+                  alignment: Alignment.topCenter,
+                  child: _renderList(),
+                ),
               ),
             ),
             Container(
