@@ -75,13 +75,13 @@ class CarouselCard extends StatelessWidget {
                     Text(
                       this.title,
                       style: textTheme.bodySmall!.apply(color: textColor),
-                      maxLines: 3,
+                      maxLines: 1,
                       overflow: TextOverflow.visible,
                     ),
                     Text(
                       this.content,
                       style: textTheme.labelSmall!.apply(color: textColor),
-                      maxLines: 5,
+                      maxLines: 2,
                       overflow: TextOverflow.visible,
                     ),
                   ],
