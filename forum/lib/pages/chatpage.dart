@@ -279,31 +279,40 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
   _renderList() {
     //print(messages);
     return GestureDetector(
-      child: ListView.builder(
+      child: SingleChildScrollView(
         reverse: true,
-        shrinkWrap: true,
-        padding: EdgeInsets.only(top: 27),
-        itemBuilder: (context, index) {
-          var item = messages[index];
-          if(index != messages.length - 1){
-            //if time difference is less than 5 minutes, don't show time
-            DateTime current = DateTime.parse(formatTime(messages[index]['createdAt']));
-            DateTime previous = DateTime.parse(formatTime(messages[index + 1]['createdAt']));
-            Duration difference = current.difference(previous);
-            if (difference.inMinutes <= 5) {
-              messages[index]['show'] = false;
-            }
-          }
-          return GestureDetector(
-            child: item['me?'] == true
-                ? _renderRowSendByMe(context, item)
-                : _renderRowSendByOthers(context, item),
-            onTap: () {},
-          );
-        },
-        itemCount: messages.length,
-        physics: const AlwaysScrollableScrollPhysics(),
         controller: _scrollController,
+        child: Column(
+          children: [
+            ListView.builder(
+              reverse: true,
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.only(top: 27),
+              itemBuilder: (context, index) {
+                var item = messages[index];
+                if(index != messages.length - 1){
+                  //if time difference is less than 5 minutes, don't show time
+                  DateTime current = DateTime.parse(formatTime(messages[index]['createdAt']));
+                  DateTime previous = DateTime.parse(formatTime(messages[index + 1]['createdAt']));
+                  Duration difference = current.difference(previous);
+                  if (difference.inMinutes <= 5) {
+                    messages[index]['show'] = false;
+                  }
+                }
+                return GestureDetector(
+                  child: item['me?'] == true
+                      ? _renderRowSendByMe(context, item)
+                      : _renderRowSendByOthers(context, item),
+                  onTap: () {},
+                );
+              },
+              itemCount: messages.length,
+              // physics: const AlwaysScrollableScrollPhysics(),
+
+            ),
+          ],
+        ),
       ),
       onTap: () {
         FocusScope.of(context).requestFocus(FocusNode());
