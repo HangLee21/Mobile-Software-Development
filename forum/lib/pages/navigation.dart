@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:flutter/material.dart';
@@ -8,9 +9,10 @@ import 'package:forum/pages/account.dart';
 import 'package:forum/pages/notification.dart';
 import 'package:forum/theme/theme_data.dart';
 import 'package:forum/pages/home.dart';
-
+import 'package:http/http.dart' as http;
 import '../classes/message.dart';
 import '../components/notificationcard.dart';
+import '../url/user.dart';
 import '../url/websocket_service.dart';
 
 class NavigationExample extends StatefulWidget {
@@ -41,6 +43,9 @@ class _NavigationExampleState extends State<NavigationExample> {
   }
   int _tabIndex = 0;
   StreamSubscription<dynamic>? _streamSubscription;
+  static String picType = "Picture";
+  static String videoType = "Video";
+  static String audioType = "Audio";
   @override
   void initState(){
     super.initState();
@@ -55,23 +60,43 @@ class _NavigationExampleState extends State<NavigationExample> {
           String content = message1.content;
           // 检查是否匹配成功
           if (match != null) {
-            content = '暂不支持的消息格式，请跳转页面详细观看内容';
+            String type = match.group(1).toString();
+            if(type == picType){
+              content = '[图片]';
+            }
+            else if(type == audioType){
+              content = '[语音]';
+            }
+            else if(type == videoType){
+              content = '[视频]';
+            }
           }
-          AnimatedSnackBar(
-            duration: Duration(seconds: 4),
-            builder: ((context) {
-              return NotificationCard(
-                friendname: message1.senderId,
-                content: content,
-                url: '',
-                friendId: message1.senderId,
-                info_num: 0,
-                remove: false,
-                onPressed: () {
-                },
-              );
-            }),
-          ).show(context);
+          requestGet('/api/user/get_user', {
+            'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+          },query: {
+            'userId': message1.senderId,
+          }).then((http.Response res2) {
+            String decodedString = utf8.decode(res2.bodyBytes);
+            Map body2 = jsonDecode(decodedString) as Map;
+            final scaffoldMessenger = ScaffoldMessenger.of(context);
+            scaffoldMessenger.hideCurrentSnackBar();
+            AnimatedSnackBar(
+              duration: Duration(seconds: 4),
+              builder: ((context) {
+                return NotificationCard(
+                  friendname: body2['content']['userName'],
+                  content: content,
+                  url: body2['content']['userAvatar'],
+                  friendId: message1.senderId,
+                  info_num: 0,
+                  remove: true,
+                  onPressed: () {
+
+                  },
+                );
+              }),
+            ).show(context);
+          });
         }
       });
     });

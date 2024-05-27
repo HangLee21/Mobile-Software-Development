@@ -206,7 +206,16 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
           String content = message1.content;
           // 检查是否匹配成功
           if (match != null) {
-            content = '暂不支持的消息格式，请跳转页面详细观看内容';
+            String type = match.group(1).toString();
+            if(type == picType){
+              content = '[图片]';
+            }
+            else if(type == audioType){
+              content = '[语音]';
+            }
+            else if(type == videoType){
+              content = '[视频]';
+            }
           }
           requestGet('/api/user/get_user', {
             'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
@@ -215,13 +224,15 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
           }).then((http.Response res2) {
             String decodedString = utf8.decode(res2.bodyBytes);
             Map body2 = jsonDecode(decodedString) as Map;
+            final scaffoldMessenger = ScaffoldMessenger.of(context);
+            scaffoldMessenger.hideCurrentSnackBar();
             AnimatedSnackBar(
               duration: Duration(seconds: 4),
               builder: ((context) {
                 return NotificationCard(
                   friendname: body2['content']['userName'],
                   content: content,
-                  url: '',
+                  url: body2['content']['userAvatar'],
                   friendId: message1.senderId,
                   info_num: 0,
                   remove: true,
@@ -346,7 +357,6 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
       //print('第二个单词: ${match.group(2)}');
       type = match.group(1).toString();
       url = match.group(2).toString();
-      print(url);
       if(type != picType && type != videoType && type != audioType){
         type = '';
       }
