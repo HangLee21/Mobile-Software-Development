@@ -1106,9 +1106,9 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
                 'show': true
               });
               _renderlist = _renderList();
-              currentIndex += 1;
             });
           }
+          currentIndex += 1;
         }
       });
     });
