@@ -1042,8 +1042,14 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
         _renderlist = _renderList();
       });
     });
-    if(tag == 'image' || tag == 'video' || tag == 'audio') {
-      content = '未支持的媒体类型 请进入页面详细观看';
+    if(tag == 'image' ) {
+      content = '[图片]';
+    }
+    else if(tag == 'video'){
+      content = '[视频]';
+    }
+    else if(tag == 'audio'){
+      content = '[语音]';
     }
     // add to local storage
     NotificationInfo notification = NotificationInfo(friendId: widget.userId, time: formattedTime, content: content, info_num: 0);

@@ -187,36 +187,38 @@ class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderSt
                         children: [
                           Container(
                             height: 120,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: users.length,
-                              itemBuilder: (context, index) {
-                                final user = users[index];
-                                return GestureDetector(
-                                  onTap: () {
-                                    if(user.userId == 'ai_assistant'){
-                                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => AIChatPage(userId: 'ai_assistant',)));
-                                    }
-                                    else{
-                                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(user.userId)));
-                                    }
-                                  },
-                                  child: Container(
-                                    width: 70,
-                                    margin: EdgeInsets.symmetric(horizontal: 8.0),
-                                    child: Column(
-                                      children: [
-                                        CircleAvatar(
-                                          backgroundImage: NetworkImage(user.avatarUrl),
-                                          radius: 30,
+                            child: EasyRefresh(
+                                child : ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: users.length,
+                                  itemBuilder: (context, index) {
+                                    final user = users[index];
+                                    return GestureDetector(
+                                      onTap: () {
+                                        if(user.userId == 'ai_assistant'){
+                                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => AIChatPage(userId: 'ai_assistant',)));
+                                        }
+                                        else{
+                                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(user.userId)));
+                                        }
+                                      },
+                                      child: Container(
+                                        width: 70,
+                                        margin: EdgeInsets.symmetric(horizontal: 8.0),
+                                        child: Column(
+                                          children: [
+                                            CircleAvatar(
+                                              backgroundImage: NetworkImage(user.avatarUrl),
+                                              radius: 30,
+                                            ),
+                                            SizedBox(height: 8.0),
+                                            Text(user.name),
+                                          ],
                                         ),
-                                        SizedBox(height: 8.0),
-                                        Text(user.name),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
+                                      ),
+                                    );
+                                  },
+                                )
                             ),
                           ),
                           if (content_cards.isEmpty)
