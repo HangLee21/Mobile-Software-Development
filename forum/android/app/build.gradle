@@ -31,10 +31,7 @@ android {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
     }
-<<<<<<< HEAD
 
-=======
->>>>>>> fdcdb453a4be01feb5b20b1578c9c0cfa10fbefd
     kotlinOptions {
         jvmTarget = '1.8'
     }
