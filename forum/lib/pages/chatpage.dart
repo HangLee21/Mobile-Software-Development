@@ -182,7 +182,7 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
                 'content': message1.content,
                 'me?': false,
                 'createdAt': formattedTime,
-                'status': 1,
+                'status': SUCCESSED_TYPE,
                 'show': true
               });
               if(messages.length > 1){
@@ -275,7 +275,7 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
                 'content': item['content'],
                 'createdAt': formattedTime,
                 'me?': item['senderId'] == widget.selfId,
-                'status': 1,
+                'status': SUCCESSED_TYPE,
                 'show': true
               });
               _renderlist = _renderList();
@@ -714,13 +714,11 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
                                     ),
                                   ),
                                 )
-                                // : item['status'] == FAILED_TYPE
-                                // ? Image(
-                                // width: 11,
-                                // height: 20,
-                                // image: AssetImage(
-                                //     "assets/images/1.jpg"))
-                                // :
+                                : item['status'] == FAILED_TYPE
+                                    ? Icon(
+                                      Icons.error,
+                                      color: Colors.red,
+                                    )
                                     :Container()),
                           ],
                         ),
@@ -1054,24 +1052,42 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
         messages[0]['status'] = SUCCESSED_TYPE;
         _renderlist = _renderList();
       });
+      if(tag == 'image' ) {
+        content = '[图片]';
+      }
+      else if(tag == 'video'){
+        content = '[视频]';
+      }
+      else if(tag == 'audio'){
+        content = '[语音]';
+      }
+      // add to local storage
+      NotificationInfo notification = NotificationInfo(friendId: widget.userId, time: formattedTime, content: content, info_num: 0);
+      NotificationStorage().saveNotification(notification);
     }).catchError((e) {
+      print('catch Connection is not established');
       setState(() {
-        messages[0]['status'] = FAILED_TYPE;
+        print('catch Connection is not established');
+        messages.removeAt(0);
+        messages.insert(0, {
+          'name': LocalStorage.getString('userName'),
+          'content': '发送失败, 请检查网络状况',
+          'me?': true,
+          'createdAt': formattedTime,
+          'status': FAILED_TYPE,
+          'show': true
+        });
+        if(messages.length > 1){
+          DateTime current = DateTime.parse(formatTime(messages[0]['createdAt']));
+          DateTime previous = DateTime.parse(formatTime(messages[1]['createdAt']));
+          Duration difference = current.difference(previous);
+          if (difference.inMinutes <= 5) {
+            messages[0]['show'] = false;
+          }
+        }
         _renderlist = _renderList();
       });
     });
-    if(tag == 'image' ) {
-      content = '[图片]';
-    }
-    else if(tag == 'video'){
-      content = '[视频]';
-    }
-    else if(tag == 'audio'){
-      content = '[语音]';
-    }
-    // add to local storage
-    NotificationInfo notification = NotificationInfo(friendId: widget.userId, time: formattedTime, content: content, info_num: 0);
-    NotificationStorage().saveNotification(notification);
   }
 
   Future<void> expandMessages() async {
@@ -1102,7 +1118,7 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
                 'content': item['content'],
                 'createdAt': formattedTime,
                 'me?': item['senderId'] == widget.selfId,
-                'status': 1,
+                'status': SUCCESSED_TYPE,
                 'show': true
               });
               _renderlist = _renderList();

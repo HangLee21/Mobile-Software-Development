@@ -25,6 +25,7 @@ class _SearchBarAppState extends State<SearchBarApp> {
   Map<String, NotificationInfo> _notificationInfos = {};
   late SearchController _searchController;
   int info_num = 0;
+  var Avatar;
   @override
   void initState() {
     super.initState();
@@ -65,6 +66,16 @@ class _SearchBarAppState extends State<SearchBarApp> {
     Navigator.of(context).push(MaterialPageRoute(builder: (context) => SearchPage(query: query)));
   }
 
+  Widget _getAvatar(){
+    String url = LocalStorage.getString('userAvatar')??'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png';
+
+    return CircleAvatar(
+      key: UniqueKey(),
+      radius: 25.0, // 设置半径为50.0，调整大小
+      foregroundImage: NetworkImage(url),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final ColorScheme colorScheme = Theme
@@ -80,10 +91,7 @@ class _SearchBarAppState extends State<SearchBarApp> {
                 // 处理用户头像点击事件
                 Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(LocalStorage.getString('userId') ?? '')));
               },
-              child: CircleAvatar(
-                radius: 25.0, // 设置半径为50.0，调整大小
-                foregroundImage: NetworkImage(LocalStorage.getString('userAvatar')??'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png'),
-              )
+              child: _getAvatar(),
           ),
         ),
         Padding(
