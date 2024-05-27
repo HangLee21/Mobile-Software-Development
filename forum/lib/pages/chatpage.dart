@@ -224,8 +224,7 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
           }).then((http.Response res2) {
             String decodedString = utf8.decode(res2.bodyBytes);
             Map body2 = jsonDecode(decodedString) as Map;
-            final scaffoldMessenger = ScaffoldMessenger.of(context);
-            scaffoldMessenger.hideCurrentSnackBar();
+            AnimatedSnackBar.removeAll();
             AnimatedSnackBar(
               duration: Duration(seconds: 4),
               builder: ((context) {
@@ -754,7 +753,7 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
     String content = textEditingController.text;
     setState(() {
       messages.insert(0, {
-        'name': LocalStorage.getString('userId'),
+        'name': LocalStorage.getString('userName'),
         'content': textEditingController.text,
         'me?': true,
         'createdAt': formattedTime,
@@ -1107,9 +1106,9 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
                 'show': true
               });
               _renderlist = _renderList();
-              currentIndex += 1;
             });
           }
+          currentIndex += 1;
         }
       });
     });

@@ -78,8 +78,8 @@ class _NavigationExampleState extends State<NavigationExample> {
           }).then((http.Response res2) {
             String decodedString = utf8.decode(res2.bodyBytes);
             Map body2 = jsonDecode(decodedString) as Map;
-            final scaffoldMessenger = ScaffoldMessenger.of(context);
-            scaffoldMessenger.hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            AnimatedSnackBar.removeAll();
             AnimatedSnackBar(
               duration: Duration(seconds: 4),
               builder: ((context) {

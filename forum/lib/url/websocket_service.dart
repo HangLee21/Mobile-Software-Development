@@ -72,14 +72,29 @@ class WebSocketService extends ChangeNotifier{
     ).then((res){
       String decodedString = utf8.decode(res.bodyBytes);
       Map body = jsonDecode(decodedString) as Map;
-      notificationStorage.saveNotification(NotificationInfo(
-          friendId: body['content']['userId'],
-          content: message1.content,
-          info_num: 1,
-          time: message1.time
-      )).then((value){
-        _messageController.add(message);
-        notifyListeners(); // 通知监听者，有新的消息
+      notificationStorage.findNotification(body['content']['userId']).then((value) => {
+        if(value == null){
+          notificationStorage.saveNotification(NotificationInfo(
+              friendId: body['content']['userId'],
+              content: message1.content,
+              info_num: 1,
+              time: message1.time
+          )).then((value){
+            _messageController.add(message);
+            notifyListeners(); // 通知监听者，有新的消息
+          })
+        }
+        else{
+          notificationStorage.saveNotification(NotificationInfo(
+              friendId: body['content']['userId'],
+              content: message1.content,
+              info_num: value.info_num + 1,
+              time: message1.time
+          )).then((value){
+            _messageController.add(message);
+            notifyListeners(); // 通知监听者，有新的消息
+          })
+        }
       });
     });
   }
