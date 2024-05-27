@@ -29,7 +29,6 @@ class SettingsState extends State<Settings>{
   String avatar = 'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png';
   String email = '';
   int imageNumber = 0;
-  SharedPreferences? sharedPreferences;
   final _websocketService = WebSocketService();
   @override
   void initState(){
@@ -37,11 +36,10 @@ class SettingsState extends State<Settings>{
     init();
   }
   void init() async{
-    sharedPreferences = await SharedPreferences.getInstance();
-    username = sharedPreferences?.getString("userName")??"";
-    userid = sharedPreferences?.getString("userId")??"";
-    avatar = sharedPreferences?.getString("userAvatar")??"https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png";
-    email = sharedPreferences?.getString("userEmail")??"";
+    username = LocalStorage.getString("userName")??"";
+    userid = LocalStorage.getString("userId")??"";
+    avatar = LocalStorage.getString("userAvatar")??"https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar_1.png";
+    email = LocalStorage.getString("userEmail")??"";
     setState(() {});
   }
 
@@ -60,18 +58,18 @@ class SettingsState extends State<Settings>{
       );
       request.headers.addAll({
         'Content-Type': 'multipart/form-data',
-        'Authorization': 'Bearer ${sharedPreferences?.getString('token') ?? '43432'}',
+        'Authorization': 'Bearer ${LocalStorage.getString('token') ?? ''}',
       });
       request.fields.addAll({
-        'userId': sharedPreferences?.getString('userId') ?? '',
+        'userId': LocalStorage.getString('userId') ?? '',
       });
 
       var response = await request.send();
       if (response.statusCode == 200) {
         var responseBody = await response.stream.bytesToString();
-        sharedPreferences?.setString('token', json.decode(responseBody)['token']);
+        LocalStorage.setString('token', json.decode(responseBody)['token']);
         print(json.decode(responseBody)['content'][0]);
-        sharedPreferences?.setString('userAvatar', json.decode(responseBody)['content'][0]);
+        LocalStorage.setString('userAvatar', json.decode(responseBody)['content'][0]);
         avatar = json.decode(responseBody)['content'][0];
         imageNumber++;
         EasyLoading.showSuccess('修改成功');
@@ -146,13 +144,13 @@ class SettingsState extends State<Settings>{
                       },
                       {
                         'Content-Type': 'application/json',
-                        'Authorization': 'Bearer ${sharedPreferences?.getString('token')??'43432'}'
+                        'Authorization': 'Bearer ${LocalStorage.getString('token')??'43432'}'
                       }).then((http.Response res){
                     if(res.statusCode == 200){
-                      sharedPreferences?.setString('token', json.decode(res.body)['token']);
+                      LocalStorage.setString('token', json.decode(res.body)['token']);
                       setState(() {
                         username = value;
-                        sharedPreferences?.setString('userName', value);
+                        LocalStorage.setString('userName', value);
                       });
                       EasyLoading.showSuccess('修改成功');
                     }else{
@@ -185,13 +183,13 @@ class SettingsState extends State<Settings>{
                         },
                         {
                           'Content-Type': 'application/json',
-                          'Authorization': 'Bearer ${sharedPreferences?.getString('token')??'43432'}'
+                          'Authorization': 'Bearer ${LocalStorage.getString('token')??'43432'}'
                         }).then((http.Response res){
                       if(res.statusCode == 200){
-                        sharedPreferences?.setString('token', json.decode(res.body)['token']);
+                        LocalStorage.setString('token', json.decode(res.body)['token']);
                         setState(() {
                           userid = value;
-                          sharedPreferences?.setString('userId', value);
+                          LocalStorage.setString('userId', value);
                         });
                         EasyLoading.showSuccess('修改成功');
                       }else{
@@ -223,13 +221,13 @@ class SettingsState extends State<Settings>{
                         },
                         {
                           'Content-Type': 'application/json',
-                          'Authorization': 'Bearer ${sharedPreferences?.getString('token')??'43432'}'
+                          'Authorization': 'Bearer ${LocalStorage.getString('token')}'
                         }).then((http.Response res){
                       if(res.statusCode == 200){
-                        sharedPreferences?.setString('token', json.decode(res.body)['token']);
+                        LocalStorage.setString('token', json.decode(res.body)['token']);
                         setState(() {
                           email = value;
-                          sharedPreferences?.setString('userEmail', value);
+                          LocalStorage.setString('userEmail', value);
                         });
                         EasyLoading.showSuccess('修改成功');
                       }else{
@@ -245,11 +243,11 @@ class SettingsState extends State<Settings>{
             }, child: Text('修改密码')),
             const SizedBox(height: 20,),
             ElevatedButton(onPressed: (){
-              sharedPreferences?.remove('token');
-              sharedPreferences?.remove('userName');
-              sharedPreferences?.remove('userId');
-              sharedPreferences?.remove('userAvatar');
-              sharedPreferences?.remove('userEmail');
+              LocalStorage.remove('token');
+              LocalStorage.remove('userName');
+              LocalStorage.remove('userId');
+              LocalStorage.remove('userAvatar');
+              LocalStorage.remove('userEmail');
               _websocketService.close();
               Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context) => LoginLayout()), (route) => false);
             }, child: Text('退出登录'))

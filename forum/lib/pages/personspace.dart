@@ -21,7 +21,7 @@ class PersonalSpace extends StatefulWidget{
 }
 
 class PersonalSpaceState extends State<PersonalSpace>{
-  String username = 'chl';
+  String username = '';
   String avatar = '';
   Text title = Text('主页');
   String email = '';

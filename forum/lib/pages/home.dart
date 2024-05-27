@@ -67,7 +67,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     EasyLoading.show(status: '加载中');
     await requestGet('/api/cos/community/recommend_works_with_urls',
         {
-          'Authorization': 'Bearer ${LocalStorage.getString('token') ?? '43432'}',
+          'Authorization': 'Bearer ${LocalStorage.getString('token') ?? ''}',
         },query: {
           'maxNum': '10'
         }).then((http.Response res) {
@@ -94,7 +94,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     List<ContentCard> _content_cards = content_cards;
     EasyLoading.show(status: '加载中');
     await requestGet('/api/cos/community/recommend_works', {
-      'Authorization': 'Bearer ${LocalStorage.getString('token') ?? '43432'}',
+      'Authorization': 'Bearer ${LocalStorage.getString('token') ?? ''}',
     },query: {
       'maxNum': '10'
     }).then((http.Response res) async {
