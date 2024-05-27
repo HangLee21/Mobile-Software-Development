@@ -120,6 +120,7 @@ class _WaveBubbleState extends State<WaveBubble> {
 
   @override
   void dispose() {
+    print('Wave dispose');
     playerStateSubscription.cancel();
     controller.dispose();
     super.dispose();
@@ -153,8 +154,8 @@ class _WaveBubbleState extends State<WaveBubble> {
                   controller.playerState.isPlaying
                       ? await controller.pausePlayer()
                       : await controller.startPlayer(
-                    finishMode: FinishMode.loop,
-                  );
+                        finishMode: FinishMode.loop,
+                      );
                 },
                 icon: Icon(
                   controller.playerState.isPlaying

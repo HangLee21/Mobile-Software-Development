@@ -47,7 +47,7 @@ class WebSocketService extends ChangeNotifier{
 
   void _reconnect() {
     if (!_isConnected) {
-      connect(userId); // 尝试重新连接
+      connect(LocalStorage.getString('userId') ?? userId); // 尝试重新连接
     }
   }
 
@@ -104,6 +104,7 @@ class WebSocketService extends ChangeNotifier{
       _channel!.sink.add(message);
     }
     else{
+      _reconnect();
       throw "Connection is not established";
     }
   }

@@ -43,7 +43,7 @@ class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderSt
   late int pageIndex = 0;
   late int pageSize = 10;
   final List<User> users = [
-    User('AI助手', 'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar.png', 'ai_assistant'),
+    User('AI助手', 'https://android-1324918669.cos.ap-beijing.myqcloud.com/AI_avatar.png', 'ai_assistant'),
   ];
   // SharedPreferences? sharedPreferences;
   @override
@@ -68,7 +68,7 @@ class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderSt
     pageIndex = 0;
     // 模拟网络请求或其他耗时操作
     users.clear();
-    users.add(User('AI助手', 'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar.png', 'ai_assistant'));
+    users.add(User('AI助手', 'https://android-1324918669.cos.ap-beijing.myqcloud.com/AI_avatar.png', 'ai_assistant'));
     getSubscriptions();
     content_cards.clear();
     getActivityWorks();
