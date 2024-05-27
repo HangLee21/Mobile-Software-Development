@@ -89,7 +89,7 @@ class _NavigationExampleState extends State<NavigationExample> {
                   url: body2['content']['userAvatar'],
                   friendId: message1.senderId,
                   info_num: 0,
-                  remove: true,
+                  remove: false,
                   onPressed: () {
 
                   },
