@@ -5,6 +5,8 @@ import 'dart:math';
 
 import 'package:animated_snack_bar/animated_snack_bar.dart';
 import 'package:better_player/better_player.dart';
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
+import 'package:easy_refresh/easy_refresh.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flick_video_player/flick_video_player.dart';
 import 'package:flutter/material.dart';
@@ -60,7 +62,7 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
   late Directory appDirectory;
   final _player = AudioPlayer();
   StreamSubscription<dynamic>? _streamSubscription;
-
+  late int currentIndex = 0;
   String friendAvatar = '';
   String friendName = '';
 
@@ -242,7 +244,9 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
         'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
       },query:  {
       "userId": widget.selfId,
-      "anotherId": widget.userId
+      "anotherId": widget.userId,
+      'pageIndex':currentIndex,
+      'pageSize': 10,
     }).then((response) {
         if (response.statusCode == 200) {
           String decodedString = utf8.decode(response.bodyBytes);
@@ -256,7 +260,7 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
             // 格式化时间
             String formattedTime = '$datePart $timePart';
             setState(() {
-              messages.insert(0, {
+              messages.add({
                 'name': item['senderId'] == widget.userId ? friendName : LocalStorage.getString('userName'),
                 'content': item['content'],
                 'createdAt': formattedTime,
@@ -1055,6 +1059,46 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
     NotificationStorage().saveNotification(notification);
   }
 
+  Future<void> expandMessages() async {
+    await Future.delayed(Duration(milliseconds: 100),(){
+      requestGet("/api/chat/get_all_messages", {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+      },query:  {
+        "userId": widget.selfId,
+        "anotherId": widget.userId,
+        'pageIndex':currentIndex + 1,
+        'pageSize': 10,
+      }).then((response) {
+        if (response.statusCode == 200) {
+          String decodedString = utf8.decode(response.bodyBytes);
+          Map body = jsonDecode(decodedString) as Map;
+
+          for(var item in body['messages']){
+            // 截取日期和时间部分
+            String datePart = item['time'].substring(0, 10);
+            String timePart = item['time'].substring(11, 19);
+
+            // 格式化时间
+            String formattedTime = '$datePart $timePart';
+            setState(() {
+              messages.add({
+                'name': item['senderId'] == widget.userId ? friendName : LocalStorage.getString('userName'),
+                'content': item['content'],
+                'createdAt': formattedTime,
+                'me?': item['senderId'] == widget.selfId,
+                'status': 1,
+                'show': true
+              });
+              _renderlist = _renderList();
+              currentIndex += 1;
+            });
+          }
+        }
+      });
+    });
+  }
+
   void addErrorMessage(content){
     // 获取当前时间
     DateTime now = DateTime.now().toLocal();
@@ -1115,11 +1159,22 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
           children: <Widget>[
             Expanded(
               flex: 1,
-              child: Container(
-                //列表内容少的时候靠上
-                alignment: Alignment.topCenter,
-                child: _renderlist,
-              ),
+              child: CustomMaterialIndicator(
+                trigger: IndicatorTrigger.trailingEdge,
+                onRefresh: expandMessages,
+                indicatorBuilder: (BuildContext context, IndicatorController controller) {
+                  return Icon(
+                    Icons.refresh,
+                    color: Colors.blue,
+                    size: 30,
+                  );
+                },
+                child: Container(
+                  //列表内容少的时候靠上
+                  alignment: Alignment.topCenter,
+                  child: _renderlist,
+                ),
+              )
             ),
             Container(
               decoration: const BoxDecoration(
