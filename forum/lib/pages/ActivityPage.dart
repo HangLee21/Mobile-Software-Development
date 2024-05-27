@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer' as developer;
+import 'package:custom_refresh_indicator/custom_refresh_indicator.dart';
 import 'package:easy_refresh/easy_refresh.dart';
 import 'package:flutter/material.dart';
 import 'package:forum/components/content_card.dart';
@@ -39,8 +40,8 @@ class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderSt
   double _dragOffset = 0.0;
   List<String> userIds = [];
 
-  int pageIndex = 0;
-  int pageSize = 10;
+  late int pageIndex = 0;
+  late int pageSize = 10;
   final List<User> users = [
     User('AI助手', 'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar.png', 'ai_assistant'),
   ];
@@ -64,6 +65,7 @@ class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderSt
   }
 
   Future<void> _refresh() async {
+    pageIndex = 0;
     // 模拟网络请求或其他耗时操作
     users.clear();
     users.add(User('AI助手', 'https://android-1324918669.cos.ap-beijing.myqcloud.com/default_avatar.png', 'ai_assistant'));
@@ -140,6 +142,41 @@ class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderSt
     });
   }
 
+  Future<void> _loadActivityWorks() async{
+    requestGet("/api/cos/user/query_subscriptions_posts", {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ${LocalStorage.getString('token')}' ?? ''
+    },query:  {
+      'userId': LocalStorage.getString('userId'),
+      'pageIndex': pageIndex + 1,
+      'pageSize': pageSize.toString()
+    }).then((http.Response res) {
+      print(res.body);
+      if(res.statusCode == 200){
+        String decodedString1 = utf8.decode(res.bodyBytes);
+        List posts = json.decode(decodedString1)['posts'];
+        for(var i in posts){
+          requestGet('/api/user/get_user',
+              {
+                'Authorization': 'Bearer ${LocalStorage.getString('token')}',
+              },query: {
+                'userId': i['userId']
+              }).then((http.Response res2){
+            if(res2.statusCode == 200) {
+              String decodedString2 = utf8.decode(res2.bodyBytes);
+              Map body = jsonDecode(decodedString2) as Map;
+              ContentCard card = ContentCard(title: i['title'], content: i['content'], postId: i['postId'],avatar: body['content']['userAvatar'],username: body['content']['userName'], userId: body['content']['userId'],media_urls: i['urls'].cast<String>(),type: 'home',);
+              setState(() {
+                content_cards.add(card);
+                pageIndex += 1;
+              });
+            }
+          });
+        }
+      }
+    });
+  }
+
 
 
   void _handleScrollNotification(ScrollNotification notification) {
@@ -175,6 +212,7 @@ class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderSt
       ),
       body: EasyRefresh(
         onRefresh: _refresh,
+        onLoad: _loadActivityWorks,
         child: Center(
           child: SizedBox(
               height: double.infinity,
@@ -187,8 +225,7 @@ class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderSt
                         children: [
                           Container(
                             height: 120,
-                            child: EasyRefresh(
-                                child : ListView.builder(
+                            child: ListView.builder(
                                   scrollDirection: Axis.horizontal,
                                   itemCount: users.length,
                                   itemBuilder: (context, index) {
@@ -220,7 +257,6 @@ class _ActivityPageState extends State<ActivityPage> with SingleTickerProviderSt
                                   },
                                 )
                             ),
-                          ),
                           if (content_cards.isEmpty)
                             const Padding(
                               padding: EdgeInsets.all(20.0),
