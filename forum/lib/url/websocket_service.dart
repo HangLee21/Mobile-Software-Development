@@ -55,7 +55,7 @@ class WebSocketService extends ChangeNotifier{
     this.userId = userId;
     String url = "$WEBSOCKET_URL/$userId";
     _channel = IOWebSocketChannel.connect(url);
-    _channel?.stream.listen(_onMessageReceived, onError: _onError, onDone: _onDone);
+    _channel?.stream.listen(_onMessageReceived);
     _isConnected = true; // 连接建立成功
   }
 
@@ -104,7 +104,6 @@ class WebSocketService extends ChangeNotifier{
       _channel!.sink.add(message);
     }
     else{
-      // _reconnect();
       throw "Connection is not established";
     }
   }
