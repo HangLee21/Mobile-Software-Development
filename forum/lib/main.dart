@@ -30,13 +30,19 @@ class _ForumAppState extends State<ForumApp> {
   }
 
   void init()async{
+    WidgetsFlutterBinding.ensureInitialized();
     await LocalStorage.init();
     print('name:${LocalStorage.getString('userName')}');
     if (LocalStorage.getString('token') != '' && LocalStorage.getString('token') != null){
 
-      logined = true;
+      setState((){
+        logined = true;
+      });
+
     }else{
-      logined = false;
+      setState((){
+        logined = false;
+      });
     }
 
   }
