@@ -81,7 +81,7 @@ class _SearchBarAppState extends State<SearchBarApp> {
     final ColorScheme colorScheme = Theme
         .of(context)
         .colorScheme;
-
+    Avatar = _getAvatar();
     return Stack(
       children: [
         Positioned(
@@ -91,7 +91,7 @@ class _SearchBarAppState extends State<SearchBarApp> {
                 // 处理用户头像点击事件
                 Navigator.of(context).push(MaterialPageRoute(builder: (context) => PersonalSpace(LocalStorage.getString('userId') ?? '')));
               },
-              child: _getAvatar(),
+              child: Avatar,
           ),
         ),
         Padding(
