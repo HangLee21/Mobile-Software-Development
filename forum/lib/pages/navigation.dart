@@ -14,6 +14,7 @@ import '../classes/message.dart';
 import '../components/notificationcard.dart';
 import '../url/user.dart';
 import '../url/websocket_service.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 class NavigationExample extends StatefulWidget {
   const NavigationExample({super.key});
@@ -21,12 +22,13 @@ class NavigationExample extends StatefulWidget {
   State<NavigationExample> createState() => _NavigationExampleState();
 }
 
-class _NavigationExampleState extends State<NavigationExample> {
+class _NavigationExampleState extends State<NavigationExample> with WidgetsBindingObserver{
   int currentPageIndex = 0;
   final _websocketService = WebSocketService();
   var _pageController = PageController();
   var _pages;
   void initData() {
+    WidgetsBinding.instance.addObserver(this);
     _pages = [
       Card(
         shadowColor: Colors.transparent,
@@ -46,9 +48,17 @@ class _NavigationExampleState extends State<NavigationExample> {
   static String picType = "Picture";
   static String videoType = "Video";
   static String audioType = "Audio";
+  void _connectWebSocket() async {
+    var connectivityResult = await (Connectivity().checkConnectivity());
+    if (connectivityResult != ConnectivityResult.none) {
+      _websocketService.connect(LocalStorage.getString('userId') ?? '');
+    }
+  }
+
   @override
   void initState(){
     super.initState();
+    _connectWebSocket();
     _streamSubscription = _websocketService.stream!.listen((message) async {
       setState(() {
         Message message1 = Message.fromString(message);
@@ -105,9 +115,21 @@ class _NavigationExampleState extends State<NavigationExample> {
 
   @override
   void dispose(){
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
     // _streamSubscription?.cancel();
   }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    if (state == AppLifecycleState.resumed) {
+      _connectWebSocket();
+    } else if (state == AppLifecycleState.paused) {
+      _websocketService.close();
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
