@@ -453,9 +453,19 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
                               maxWidth: MediaQuery.of(context).size.width/1.5,
                               maxHeight: 200,
                             ),
-                              child: Image.network(
-                                url,
-                              ),
+                              child: GestureDetector(
+                                onTap: (){
+                                  showDialog(
+                                      context: context,
+                                      builder: (context){
+                                        return Image.network(url);
+                                      }
+                                  );
+                                },
+                                child: Image.network(
+                                  url,
+                                ),
+                              )
                             ),
                           if (type == videoType)
                             ConstrainedBox(
@@ -640,8 +650,18 @@ class _ChatPageState extends State<ChatPage> with AutomaticKeepAliveClientMixin 
                                 maxWidth: MediaQuery.of(context).size.width/1.5,
                                 maxHeight: 200,
                               ),
-                                child: Image.network(
-                                  url,
+                                child: GestureDetector(
+                                  onTap: (){
+                                    showDialog(
+                                        context: context,
+                                        builder: (context){
+                                          return Image.network(url);
+                                        }
+                                    );
+                                  },
+                                  child: Image.network(
+                                    url,
+                                  ),
                                 ),
                               ),
                             if (type == videoType)
